@@ -1,6 +1,6 @@
 Package: polygonR
 Title: Interact With the Polygon REST API
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: 
     person("Flynn", "Gewirtz-O'Reilly", ,
     "f.gewirtz-oreilly.1@research.gla.ac.uk", role = c("aut", "cre"))
@@ -12,6 +12,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
     askpass,
+    cli,
     dplyr,
     glue,
     httr2,

@@ -26,8 +26,9 @@ request_agg <- function(ticker, from, to, timespan = "day",  multiplier = 1, api
   req <- glue::glue("https://api.polygon.io/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{from}/{to}") %>%
     httr2::request() |>
     httr2::req_url_query(!!!params) |>
+    httr2::req_user_agent("polygonR (https://github.com/flynngo/polygonR)") |>
     httr2::req_headers(Authorization = glue::glue("Bearer {api_key}"))
-  return(req)
+
   # Execute request
   resp <- req %>%
     httr2::req_perform()  %>%
@@ -96,24 +97,34 @@ get_api_key <- function() {
   } else {
 
     # TODO: Check this with fresh environment
-    warning("No API key found, please supply with `api_key` argument or with POLYGON_KEY env var")
-    set_api_key()
-    message("Restart R")
+    # warning("No API key found, please supply with `api_key` argument or with POLYGON_KEY env var.")
+    cli::cli_warn(c(
+      "No API key found.",
+      "i" = "Please supply with {.arg api_key} argument or with {.envvar POLYGON_KEY} env var.",
+      "i" = "Use {.fun set_api_key} to set {.envvar POLYGON_KEY}."
+    ))
   }
 }
 
-set_api_key <- function(key = NULL) {
-  if (is.null(key)) {
-    key <- askpass::askpass("Please enter your API key")
-  }
+#' Set API key as environment variable
+#'
+#'
+#' @return NULL
+#' @export
+#'
+#' @examples
+#' set_api_key()
+#'
+set_api_key <- function() {
+  key <- askpass::askpass("Please enter your API key")
   Sys.setenv("POLYGON_KEY" = key)
+  cli::cli_inform(c("v" = "POLYGON_KEY set."))
 }
 
 is_testing <- function() {
   identical(Sys.getenv("TESTTHAT"), "true")
 }
 
-# TODO: need to update testing_key with my encrypted key
 testing_key <- function() {
   httr2::secret_decrypt("6TUF1FcAwwK2jRsSgr0Sd3ZBOCxysCcQj4evRxWBC-WuzP3EpUzpu8bx-vQ81uz4", "POLYGONTEST_KEY")
 }
