@@ -1,0 +1,25 @@
+Package: polygonR
+Title: Interact With the Polygon REST API
+Version: 0.1.0
+Authors@R: 
+    person("Flynn", "Gewirtz-O'Reilly", ,
+    "f.gewirtz-oreilly.1@research.gla.ac.uk", role = c("aut", "cre"))
+Description: Provide functions for querying the polygon.io REST API. Queries 
+    return 'tidy' data.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports: 
+    askpass,
+    dplyr,
+    glue,
+    httr2,
+    lubridate,
+    magrittr,
+    rlang,
+    tibble,
+    tidyr
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
