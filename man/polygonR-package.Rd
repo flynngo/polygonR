@@ -8,6 +8,14 @@
 \description{
 Provide functions for querying the polygon.io REST API. Queries return 'tidy' data.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/flynngo/polygonR}
+  \item Report bugs at \url{https://github.com/flynngo/polygonR/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Flynn Gewirtz-O'Reilly \email{f.gewirtz-oreilly.1@research.gla.ac.uk}
 

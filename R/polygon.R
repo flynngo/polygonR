@@ -16,7 +16,7 @@
 #' @references https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to
 #' @export
 #'
-request_agg <- function(ticker, from, to, timespan = "day",  multiplier = 1, api_key = get_api_key(), adjusted = TRUE, limit = 50000, sort = "asc") {
+aggregate <- function(ticker, from, to, timespan = "day",  multiplier = 1, api_key = get_api_key(), adjusted = TRUE, limit = 50000, sort = "asc") {
   # Build API request
   params <- list(
     adjusted = adjusted,
@@ -56,8 +56,8 @@ process_agg <- function(json) {
     adjusted = json[["adjusted"]],
     results = tidy_results(json[["results"]]),
   ) %>%
+    # TODO: this line causes a warning
     tidyr::unnest(cols = c(.data$results))
-
 }
 
 #' Format results attribute as tidy data
@@ -111,10 +111,6 @@ get_api_key <- function() {
 #'
 #' @return NULL
 #' @export
-#'
-#' @examples
-#' set_api_key()
-#'
 set_api_key <- function() {
   key <- askpass::askpass("Please enter your API key")
   Sys.setenv("POLYGON_KEY" = key)
@@ -126,5 +122,5 @@ is_testing <- function() {
 }
 
 testing_key <- function() {
-  httr2::secret_decrypt("6TUF1FcAwwK2jRsSgr0Sd3ZBOCxysCcQj4evRxWBC-WuzP3EpUzpu8bx-vQ81uz4", "POLYGONTEST_KEY")
+  httr2::secret_decrypt("xbLJDxkC7VZ7-kcL4rrYV-1fQyHW6I-DURQ9a7ePNsAjwYdkRByso2JHlnSskB22", "POLYGONTEST_KEY")
 }
