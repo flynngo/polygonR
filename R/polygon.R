@@ -11,12 +11,12 @@
 #' @param adjusted Whether or not the results are adjusted for splits.
 #' @param limit Limits the number of base aggregates queried to create the aggregate results. Max 50000.
 #' @param sort Sort the results by timestamp. "asc" will return results in ascending order (oldest at the top), "desc" will return results in descending order (newest at the top).
-
+#' @param rate_limit Number of requests allowed per minute. Default = 5 corresponds to the basic plan, all paid plans allow `Inf` requests.
 #'
 #' @references https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to
 #' @export
 #'
-aggregate <- function(ticker, from, to, timespan = "day",  multiplier = 1, api_key = get_api_key(), adjusted = TRUE, limit = 50000, sort = "asc") {
+aggregate <- function(ticker, from, to, timespan = "day",  multiplier = 1, api_key = get_api_key(), adjusted = TRUE, limit = 50000, sort = "asc", rate_limit = 5) {
   # Build API request
   params <- list(
     adjusted = adjusted,
@@ -27,7 +27,8 @@ aggregate <- function(ticker, from, to, timespan = "day",  multiplier = 1, api_k
     httr2::request() |>
     httr2::req_url_query(!!!params) |>
     httr2::req_user_agent("polygonR (https://github.com/flynngo/polygonR)") |>
-    httr2::req_headers(Authorization = glue::glue("Bearer {api_key}"))
+    httr2::req_headers(Authorization = glue::glue("Bearer {api_key}")) |>
+    httr2::req_throttle(rate_limit / 60)
 
   # Execute request
   resp <- req %>%

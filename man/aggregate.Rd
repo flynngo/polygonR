@@ -13,7 +13,8 @@ aggregate(
   api_key = get_api_key(),
   adjusted = TRUE,
   limit = 50000,
-  sort = "asc"
+  sort = "asc",
+  rate_limit = 5
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ aggregate(
 \item{limit}{Limits the number of base aggregates queried to create the aggregate results. Max 50000.}
 
 \item{sort}{Sort the results by timestamp. "asc" will return results in ascending order (oldest at the top), "desc" will return results in descending order (newest at the top).}
+
+\item{rate_limit}{Number of requests allowed per minute. Default = 5 corresponds to the basic plan, all paid plans allow \code{Inf} requests.}
 }
 \description{
 Requests data using the polygon.io Aggregates API.

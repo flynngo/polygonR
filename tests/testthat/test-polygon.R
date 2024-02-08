@@ -20,3 +20,13 @@ test_that("Error handling", {
     "HTTP 401"
     )
 })
+
+test_that("Basic plan rate limit isn't hit", {
+  skip_on_cran()
+  expect_no_error({
+    for(i in 1:6) aggregate(
+      ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
+      to = "2023-01-09", limit = 120, rate_limit = 5)
+    })
+  }
+)
