@@ -1,3 +1,22 @@
+# Base handler for rest api queries
+query <- function(url, params, api_key, rate_limit) {
+  # Build API request
+  req <- httr2::request(url) |>
+    httr2::req_url_query(!!!params) |>
+    httr2::req_user_agent("polygonR (https://github.com/flynngo/polygonR)") |>
+    httr2::req_headers(Authorization = glue::glue("Bearer {api_key}")) |>
+    httr2::req_throttle(rate_limit / 60)
+
+  # Execute request
+  resp <- req %>%
+    httr2::req_perform()  %>%
+    httr2::resp_body_json()
+
+  # TODO: add handling for next_url here
+  resp
+}
+
+
 #' Request data from polygon aggregates api
 #'
 #' Requests data using the polygon.io Aggregates API.
@@ -23,25 +42,15 @@ aggregate <- function(ticker, from, to, timespan = "day",  multiplier = 1, api_k
     sort = sort,
     limit = limit
   )
-  req <- glue::glue("https://api.polygon.io/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{from}/{to}") %>%
-    httr2::request() |>
-    httr2::req_url_query(!!!params) |>
-    httr2::req_user_agent("polygonR (https://github.com/flynngo/polygonR)") |>
-    httr2::req_headers(Authorization = glue::glue("Bearer {api_key}")) |>
-    httr2::req_throttle(rate_limit / 60)
-
-  # Execute request
-  resp <- req %>%
-    httr2::req_perform()  %>%
-    httr2::resp_body_json()
-
+  resp <- query(
+    glue::glue("https://api.polygon.io/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{from}/{to}"),
+    params,
+    api_key,
+    rate_limit
+  )
   # Format data
   process_agg(resp)
-
-  # TODO: if limit < number of base aggregates needed for query then resp$next_url will be non-null and contain the next query (so I should check for this and if it's nonnull call a new query and bind the returned objects together (and go until it's not null (maybe prompt user first?))). httr2 has features to help with multiple requests.
-
 }
-
 
 #' Convert polygon.io aggregates query from json to tidy format
 #'
@@ -50,6 +59,7 @@ aggregate <- function(ticker, from, to, timespan = "day",  multiplier = 1, api_k
 #' @param json response object from [`httr2::resp_body_json`]
 #'
 #' @return tibble containing information in `json`.
+
 process_agg <- function(json) {
   # Extract attributes
   tibble::tibble(
