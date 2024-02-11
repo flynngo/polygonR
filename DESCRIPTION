@@ -15,7 +15,7 @@ Imports:
     cli,
     dplyr,
     glue,
-    httr2,
+    httr2 (>= 1.0.0),
     lubridate,
     magrittr,
     rlang,

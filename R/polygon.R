@@ -1,5 +1,5 @@
 # Base handler for rest api queries
-query <- function(url, params, api_key, rate_limit) {
+query <- function(url, params, api_key, rate_limit, max_reqs = Inf) {
   # Build API request
   req <- httr2::request(url) |>
     httr2::req_url_query(!!!params) |>
@@ -8,14 +8,22 @@ query <- function(url, params, api_key, rate_limit) {
     httr2::req_throttle(rate_limit / 60)
 
   # Execute request
-  resp <- req %>%
-    httr2::req_perform()  %>%
-    httr2::resp_body_json()
+  httr2::req_perform_iterative(
+    req,
+    next_req = next_req,
+    max_reqs = max_reqs
+    )
 
-  # TODO: add handling for next_url here
-  resp
+  # TODO: Check if any requests failed and warn the user if they did.
 }
 
+next_req <- function(resp, req) {
+  next_url <- httr2::resp_body_json(resp)$next_url
+  if (is.null(next_url))
+    return(NULL)
+  req |>
+    httr2::req_url(url = next_url)
+}
 
 #' Request data from polygon aggregates api
 #'
@@ -35,7 +43,10 @@ query <- function(url, params, api_key, rate_limit) {
 #' @references https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to
 #' @export
 #'
-aggregate <- function(ticker, from, to, timespan = "day",  multiplier = 1, api_key = get_api_key(), adjusted = TRUE, limit = 50000, sort = "asc", rate_limit = 5) {
+aggregate <- function(
+    ticker, from, to, timespan = "day",  multiplier = 1,
+    api_key = get_api_key(), adjusted = TRUE, limit = 50000, sort = "asc",
+    rate_limit = 5, max_reqs = 5) {
   # Build API request
   params <- list(
     adjusted = adjusted,
@@ -46,10 +57,12 @@ aggregate <- function(ticker, from, to, timespan = "day",  multiplier = 1, api_k
     glue::glue("https://api.polygon.io/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{from}/{to}"),
     params,
     api_key,
-    rate_limit
-  )
+    rate_limit,
+    max_reqs = max_reqs
+  ) |>
+    httr2::resps_data(\(resp) process_agg(httr2::resp_body_json(resp)))
   # Format data
-  process_agg(resp)
+  # process_agg(resp)
 }
 
 #' Convert polygon.io aggregates query from json to tidy format
@@ -59,13 +72,15 @@ aggregate <- function(ticker, from, to, timespan = "day",  multiplier = 1, api_k
 #' @param json response object from [`httr2::resp_body_json`]
 #'
 #' @return tibble containing information in `json`.
-
 process_agg <- function(json) {
-  # Extract attributes
+  results <- json[["results"]]
+  if (is.null(results)) {
+    return(NULL)
+  }
   tibble::tibble(
     ticker = json[["ticker"]],
     adjusted = json[["adjusted"]],
-    results = tidy_results(json[["results"]]),
+    results = tidy_results(results),
   ) %>%
     # TODO: this line causes a warning
     tidyr::unnest(cols = c(.data$results))

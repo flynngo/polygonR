@@ -20,13 +20,49 @@ test_that("Error handling", {
     "HTTP 401"
     )
 })
+
+test_that("query works iteratively", {
+  # expect_equal(
+  #   nrow(
+  #     aggregate(
+  #       ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
+  #       to = "2023-01-15", limit = 4)
+  #   ),
+  #   5
+  # )
+  # Build API request
+  expect_equal(
+    length(
+      query(
+        "https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/2023-01-09/2023-01-15",
+        params = list(
+          adjusted = TRUE,
+          sort = "asc",
+          limit = 3
+        ),
+        api_key = get_api_key(),
+        rate_limit = 5)
+    ),
+    2
+  )
+
+  expect_equal(
+    nrow(
+      aggregate(
+        ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
+        to = "2023-01-15", limit = 3)
+    ),
+    5
+  )
+})
+
 # Run the extra requests needed to hit the rate_limit, I can reduce the number
 # of loops and eventually remove or skip when I've added enough tests for over 6
 # requests.
 test_that("Basic plan rate limit isn't hit", {
-  skip_on_cran()
+  skip("There are enough tests that I don't need to specifically verify this.")
   expect_no_error({
-    for(i in 1:3) aggregate(
+    for(i in 1:5) aggregate(
       ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
       to = "2023-01-09", limit = 120, rate_limit = 5)
     })
