@@ -2,27 +2,29 @@ test_that("Aggregate queries successfully", {
   expect_no_error(
     aggregate(
       ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
-      to = "2023-01-09", limit = 120)
+      to = "2023-01-09", limit = 120
     )
+  )
 })
 
 test_that("Error handling", {
   expect_error(
     aggregate(
       ticker = "AAPL", multiplier = 1, timespan = "day", from = "3023-01-09",
-      to = "3023-01-09", limit = 120),
+      to = "3023-01-09", limit = 120
+    ),
     "HTTP 403"
-    )
+  )
   expect_error(
     aggregate(
       ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
-      to = "2023-01-09", limit = 120, api_key = "invalid key"),
+      to = "2023-01-09", limit = 120, api_key = "invalid key"
+    ),
     "HTTP 401"
-    )
+  )
 })
 
 test_that("query works iteratively", {
-
   expect_equal(
     length(
       query(
@@ -33,7 +35,9 @@ test_that("query works iteratively", {
           limit = 3
         ),
         api_key = get_api_key(),
-        rate_limit = 5)
+        rate_limit = 5,
+        max_reqs = 2
+      )
     ),
     2
   )
@@ -41,7 +45,8 @@ test_that("query works iteratively", {
     nrow(
       aggregate(
         ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
-        to = "2023-01-15", limit = 3)
+        to = "2023-01-15", limit = 3
+      )
     ),
     5
   )
@@ -55,20 +60,20 @@ test_that("query works iteratively", {
       ),
       api_key = get_api_key(),
       rate_limit = 5,
-      max_reqs = 2),
+      max_reqs = 2
+    ),
     "Incomplete results were returned for query."
   )
 })
 
-# Run the extra requests needed to hit the rate_limit, I can reduce the number
-# of loops and eventually remove or skip when I've added enough tests for over 6
-# requests.
 test_that("Basic plan rate limit isn't hit", {
-  skip("There are enough tests that I don't need to specifically verify this.")
+  skip("Is tested as a side-effect of previous tests.")
   expect_no_error({
-    for(i in 1:5) aggregate(
-      ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
-      to = "2023-01-09", limit = 120, rate_limit = 5)
-    })
-  }
-)
+    for (i in 1:5) {
+      aggregate(
+        ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
+        to = "2023-01-09", limit = 120, rate_limit = 5
+      )
+    }
+  })
+})

@@ -1,5 +1,7 @@
 # Base handler for rest api queries
-query <- function(url, params, api_key, rate_limit, max_reqs = Inf) {
+
+# TODO: need to document new functions
+query <- function(url, params, api_key, rate_limit, max_reqs) {
   # Build API request
   req <- httr2::request(url) |>
     httr2::req_url_query(!!!params) |>
@@ -12,29 +14,29 @@ query <- function(url, params, api_key, rate_limit, max_reqs = Inf) {
     req,
     next_req = next_req,
     max_reqs = max_reqs
-    )
+  )
 
   # Verify all requests completed
   if (
     length(resps) == max_reqs &&
-    !is.null(httr2::resp_body_json(resps[[max_reqs]])$next_url)
-  ){
+      !is.null(httr2::resp_body_json(resps[[max_reqs]])$next_url)
+  ) {
     cli::cli_warn(
       c(
-      "!" = "Incomplete results were returned for query.",
-      "x" = "{.arg max_reqs} = {max_reqs} was reached before query finished.",
-      "i" = "For complete results increase {.arg max_reqs} and re-run."
+        "!" = "Incomplete results were returned for query.",
+        "x" = "{.arg max_reqs} = {max_reqs} was reached before query finished.",
+        "i" = "For complete results increase {.arg max_reqs} and re-run."
       )
-      )
+    )
   }
   resps
-  # TODO: Check if any requests failed and warn the user if they did.
 }
 
 next_req <- function(resp, req) {
   next_url <- httr2::resp_body_json(resp)$next_url
-  if (is.null(next_url))
+  if (is.null(next_url)) {
     return(NULL)
+  }
   req |>
     httr2::req_url(url = next_url)
 }
@@ -43,22 +45,30 @@ next_req <- function(resp, req) {
 #'
 #' Requests data using the polygon.io Aggregates API.
 #'
-#' @param ticker Specify a case-sensitive ticker symbol. For example, AAPL represents Apple Inc.
-#' @param from The start of the aggregate time window. Either a date with the format YYYY-MM-DD or a millisecond timestamp.
-#' @param to The end of the aggregate time window. Either a date with the format YYYY-MM-DD or a millisecond timestamp.
+#' @param ticker Specify a case-sensitive ticker symbol. For example, AAPL
+#'   represents Apple Inc.
+#' @param from The start of the aggregate time window. Either a date with the
+#'   format YYYY-MM-DD or a millisecond timestamp.
+#' @param to The end of the aggregate time window. Either a date with the format
+#'   YYYY-MM-DD or a millisecond timestamp.
 #' @param timespan The size of the time window.
 #' @param multiplier The size of the timespan multiplier.
 #' @param api_key polygon.io API key
 #' @param adjusted Whether or not the results are adjusted for splits.
-#' @param limit Limits the number of base aggregates queried to create the aggregate results. Max 50000.
-#' @param sort Sort the results by timestamp. "asc" will return results in ascending order (oldest at the top), "desc" will return results in descending order (newest at the top).
-#' @param rate_limit Number of requests allowed per minute. Default = 5 corresponds to the basic plan, all paid plans allow `Inf` requests.
+#' @param limit Limits the number of base aggregates queried to create the
+#'   aggregate results. Max 50000.
+#' @param sort Sort the results by timestamp. "asc" will return results in
+#'   ascending order (oldest at the top), "desc" will return results in
+#'   descending order (newest at the top).
+#' @param rate_limit Number of requests allowed per minute. Default = 5
+#'   corresponds to the basic plan, all paid plans allow `Inf` requests.
 #'
-#' @references https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to
+#' @references
+#' https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to
 #' @export
 #'
 aggregate <- function(
-    ticker, from, to, timespan = "day",  multiplier = 1,
+    ticker, from, to, timespan = "day", multiplier = 1,
     api_key = get_api_key(), adjusted = TRUE, limit = 50000, sort = "asc",
     rate_limit = 5, max_reqs = 5) {
   # Build API request
@@ -67,7 +77,7 @@ aggregate <- function(
     sort = sort,
     limit = limit
   )
-  resp <- query(
+  query(
     glue::glue("https://api.polygon.io/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{from}/{to}"),
     params,
     api_key,
@@ -81,7 +91,8 @@ aggregate <- function(
 
 #' Convert polygon.io aggregates query from json to tidy format
 #'
-#' Convert the json obtained from an aggregates query of polygon.io into tabular data.
+#' Convert the json obtained from an aggregates query of polygon.io into tabular
+#' data.
 #'
 #' @param json response object from [`httr2::resp_body_json`]
 #'
@@ -117,10 +128,9 @@ tidy_results <- function(results) {
       time = "t",
       trade_volume = "v",
       volume_weighted = "vw"
-      ) %>%
-    # Convert time from unix time in milliseconds
+    ) %>%
     dplyr::mutate(
-      time = lubridate::as_datetime(.data$time/1000)
+      time = lubridate::as_datetime(.data$time / 1000)
     )
 }
 
@@ -134,9 +144,6 @@ get_api_key <- function() {
   if (is_testing()) {
     return(testing_key())
   } else {
-
-    # TODO: Check this with fresh environment
-    # warning("No API key found, please supply with `api_key` argument or with POLYGON_KEY env var.")
     cli::cli_warn(c(
       "No API key found.",
       "i" = "Please supply with {.arg api_key} argument or with {.envvar POLYGON_KEY} env var.",
