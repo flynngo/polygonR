@@ -57,8 +57,7 @@ process_agg <- function(json) {
     adjusted = json[["adjusted"]],
     results = tidy_results(json[["results"]]),
   ) %>%
-    # TODO: this line causes a warning
-    tidyr::unnest(cols = c(.data$results))
+    tidyr::unnest(cols = c("results"))
 }
 
 #' Format results attribute as tidy data
