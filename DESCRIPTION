@@ -17,7 +17,6 @@ Imports:
     glue,
     httr2 (>= 1.0.0),
     lubridate,
-    magrittr,
     rlang,
     tibble,
     tidyr
