@@ -28,7 +28,7 @@ test_that("query works iteratively", {
   expect_equal(
     length(
       query(
-        "https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/2023-01-09/2023-01-15",
+        "https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/2023-01-09/2023-01-15", # nolint
         params = list(
           adjusted = TRUE,
           sort = "asc",
@@ -52,9 +52,9 @@ test_that("query works iteratively", {
   )
   expect_warning(
     query(
-      "https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/2023-01-09/2023-01-15",
+      "https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/2023-01-09/2023-01-15", # nolint
       params = list(
-        adjusted = T,
+        adjusted = TRUE,
         sort = "asc",
         limit = 1
       ),

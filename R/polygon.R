@@ -2,25 +2,20 @@
 
 # TODO: need to document new functions
 query <- function(url, params, api_key, rate_limit, max_reqs) {
-  # Build API request
   req <- httr2::request(url) |>
     httr2::req_url_query(!!!params) |>
     httr2::req_user_agent("polygonR (https://github.com/flynngo/polygonR)") |>
     httr2::req_headers(Authorization = glue::glue("Bearer {api_key}")) |>
     httr2::req_throttle(rate_limit / 60)
 
-  # Execute request
   resps <- httr2::req_perform_iterative(
     req,
     next_req = next_req,
     max_reqs = max_reqs
   )
 
-  # Verify all requests completed
-  if (
-    length(resps) == max_reqs &&
-      !is.null(httr2::resp_body_json(resps[[max_reqs]])$next_url)
-  ) {
+  if (length(resps) == max_reqs &&
+        !is.null(httr2::resp_body_json(resps[[max_reqs]])$next_url)) {
     cli::cli_warn(
       c(
         "!" = "Incomplete results were returned for query.",
@@ -67,26 +62,30 @@ next_req <- function(resp, req) {
 #' https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to
 #' @export
 #'
-aggregate <- function(
-    ticker, from, to, timespan = "day", multiplier = 1,
-    api_key = get_api_key(), adjusted = TRUE, limit = 50000, sort = "asc",
-    rate_limit = 5, max_reqs = 5) {
-  # Build API request
+aggregate <- function(ticker,
+                      from,
+                      to,
+                      timespan = "day",
+                      multiplier = 1,
+                      api_key = get_api_key(),
+                      adjusted = TRUE,
+                      limit = 50000,
+                      sort = "asc",
+                      rate_limit = 5,
+                      max_reqs = 5) {
   params <- list(
     adjusted = adjusted,
     sort = sort,
     limit = limit
   )
   query(
-    glue::glue("https://api.polygon.io/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{from}/{to}"),
-    params,
-    api_key,
-    rate_limit,
+    glue::glue("https://api.polygon.io/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{from}/{to}"), # nolint
+    params = params,
+    api_key = api_key,
+    rate_limit = rate_limit,
     max_reqs = max_reqs
   ) |>
     httr2::resps_data(\(resp) process_agg(httr2::resp_body_json(resp)))
-  # Format data
-  # process_agg(resp)
 }
 
 #' Convert polygon.io aggregates query from json to tidy format
@@ -146,7 +145,7 @@ get_api_key <- function() {
   } else {
     cli::cli_warn(c(
       "No API key found.",
-      "i" = "Please supply with {.arg api_key} argument or with {.envvar POLYGON_KEY} env var.",
+      "i" = "Supply {.arg api_key} arg or set {.envvar POLYGON_KEY} env var.",
       "i" = "Use {.fun set_api_key} to set {.envvar POLYGON_KEY}."
     ))
   }
@@ -168,5 +167,8 @@ is_testing <- function() {
 }
 
 testing_key <- function() {
-  httr2::secret_decrypt("xbLJDxkC7VZ7-kcL4rrYV-1fQyHW6I-DURQ9a7ePNsAjwYdkRByso2JHlnSskB22", "POLYGONTEST_KEY")
+  httr2::secret_decrypt(
+    "xbLJDxkC7VZ7-kcL4rrYV-1fQyHW6I-DURQ9a7ePNsAjwYdkRByso2JHlnSskB22",
+    "POLYGONTEST_KEY"
+  )
 }
