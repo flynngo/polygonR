@@ -1,6 +1,25 @@
-# Base handler for rest api queries
-
-# TODO: need to document new functions
+#' Query polygon.io REST API
+#'
+#' Query the polygon.io REST API. Meant for internal use only.
+#'
+#' @param url URL to query.
+#' @param params Named list of additional parameters to send with query.
+#' @param api_key String containing API key for polygon.io.
+#' @param rate_limit Number of API requests allowed per minute. Basic plan users
+#'   are allowed 5 requests per minute, while paid plan users are allowed `Inf`
+#'   requests per minute.
+#' @param max_reqs The number of requests allowed for a single query. If a query
+#'   exceeds the amount of data that is allowed for a single request then
+#'   `query` will iteratively send requests until either the query is completed
+#'   or `max_reqs` requests are sent.
+#'
+#' @seealso [`httr2::req_perform_iterative()`], which handles the underlying
+#'   implementation.
+#'
+#' @returns A list, at most length `max_reqs`, containing responses and possibly
+#'   one error object, if one of the requests errors. If present, the error
+#'   object will always be the last element in the list.
+#' @noRd
 query <- function(url, params, api_key, rate_limit, max_reqs) {
   req <- httr2::request(url) |>
     httr2::req_url_query(!!!params) |>
@@ -12,6 +31,7 @@ query <- function(url, params, api_key, rate_limit, max_reqs) {
     req,
     next_req = next_req,
     max_reqs = max_reqs
+    # TODO: add progress = FALSE
   )
 
   if (length(resps) == max_reqs &&
@@ -27,6 +47,20 @@ query <- function(url, params, api_key, rate_limit, max_reqs) {
   resps
 }
 
+#' Iteration Helper Function for [`query`]
+#'
+#' For internal use by [`query()`]. Function returns the next request in the
+#' iteration when calling [`query`].
+#'
+#' @param resp [`httr2::response()`] for previous iteration.
+#' @param req [`httr2::request()`] for previous iteration.
+#'
+#' @return Either [`httr2::request()`] for the next iteration or `NULL` if the
+#'   query is complete.
+#'
+#' @seealso [`httr2::req_perform_iterative()`] for general information about
+#'   `next_req`.
+#' @noRd
 next_req <- function(resp, req) {
   next_url <- httr2::resp_body_json(resp)$next_url
   if (is.null(next_url)) {
@@ -38,41 +72,47 @@ next_req <- function(resp, req) {
 
 #' Request data from polygon aggregates api
 #'
-#' Requests data using the polygon.io Aggregates API.
+#' Requests data using the polygon.io aggregates API.
 #'
-#' @param ticker Specify a case-sensitive ticker symbol. For example, AAPL
+#' @param ticker Specify a case-sensitive ticker symbol. For example, "AAPL"
 #'   represents Apple Inc.
 #' @param from The start of the aggregate time window. Either a date with the
-#'   format YYYY-MM-DD or a millisecond timestamp.
+#'   format "YYYY-MM-DD" or a millisecond timestamp.
 #' @param to The end of the aggregate time window. Either a date with the format
-#'   YYYY-MM-DD or a millisecond timestamp.
+#'   "YYYY-MM-DD" or a millisecond timestamp.
 #' @param timespan The size of the time window.
 #' @param multiplier The size of the timespan multiplier.
-#' @param api_key polygon.io API key
-#' @param adjusted Whether or not the results are adjusted for splits.
-#' @param limit Limits the number of base aggregates queried to create the
-#'   aggregate results. Max 50000.
+#' @param api_key String containing API key for polygon.io.
+#' @param adjusted Whether or not the results are adjusted for stock splits.
+#' @param limit Limits the number of base aggregates that are used to create an
+#'   aggregates request. Max 50000. See `max_reqs` for further information about
+#'   queries that exceed `limit`.
 #' @param sort Sort the results by timestamp. "asc" will return results in
 #'   ascending order (oldest at the top), "desc" will return results in
 #'   descending order (newest at the top).
-#' @param rate_limit Number of requests allowed per minute. Default = 5
-#'   corresponds to the basic plan, all paid plans allow `Inf` requests.
+#' @param rate_limit Number of API requests allowed per minute. Default = 5
+#'   corresponds to the 5 requests allowed per minute for Basic plan users. All
+#'   paid plan users are allowed unlimited requests per minute, equivalent to
+#'   rate_limit = `Inf`.
+#' @param max_reqs The number of requests allowed for a single query. If a query
+#'   exceeds the maximum size for a single request then `query` will iteratively
+#'   send requests until either the query is completed or `max_reqs` requests
+#'   are sent. See `limit` to increase the maximum request size.
 #'
-#' @references
-#' https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to
+#' @references \url{https://polygon.io/docs/} for further information about
+#'   arguments for polygon.io API requests.
 #' @export
-#'
-aggregate <- function(ticker,
-                      from,
-                      to,
-                      timespan = "day",
-                      multiplier = 1,
-                      api_key = get_api_key(),
-                      adjusted = TRUE,
-                      limit = 50000,
-                      sort = "asc",
-                      rate_limit = 5,
-                      max_reqs = 5) {
+aggregates <- function(ticker,
+                       from,
+                       to,
+                       timespan = "day",
+                       multiplier = 1,
+                       api_key = get_api_key(),
+                       adjusted = TRUE,
+                       limit = 50000,
+                       sort = "asc",
+                       rate_limit = 5,
+                       max_reqs = 5) {
   params <- list(
     adjusted = adjusted,
     sort = sort,

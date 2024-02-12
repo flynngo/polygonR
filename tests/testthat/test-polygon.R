@@ -1,6 +1,6 @@
-test_that("Aggregate queries successfully", {
+test_that("Aggregates query is successful", {
   expect_no_error(
-    aggregate(
+    aggregates(
       ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
       to = "2023-01-09", limit = 120
     )
@@ -9,14 +9,14 @@ test_that("Aggregate queries successfully", {
 
 test_that("Error handling", {
   expect_error(
-    aggregate(
+    aggregates(
       ticker = "AAPL", multiplier = 1, timespan = "day", from = "3023-01-09",
       to = "3023-01-09", limit = 120
     ),
     "HTTP 403"
   )
   expect_error(
-    aggregate(
+    aggregates(
       ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
       to = "2023-01-09", limit = 120, api_key = "invalid key"
     ),
@@ -43,7 +43,7 @@ test_that("query works iteratively", {
   )
   expect_equal(
     nrow(
-      aggregate(
+      aggregates(
         ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
         to = "2023-01-15", limit = 3
       )
@@ -70,7 +70,7 @@ test_that("Basic plan rate limit isn't hit", {
   skip("Is tested as a side-effect of previous tests.")
   expect_no_error({
     for (i in 1:5) {
-      aggregate(
+      aggregates(
         ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
         to = "2023-01-09", limit = 120, rate_limit = 5
       )
