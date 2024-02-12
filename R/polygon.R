@@ -105,7 +105,7 @@ process_agg <- function(json) {
     ticker = json[["ticker"]],
     adjusted = json[["adjusted"]],
     results = tidy_results(results),
-  ) %>%
+  ) |>
     tidyr::unnest(cols = c("results"))
 }
 
@@ -117,8 +117,8 @@ process_agg <- function(json) {
 #'
 #' @return results attribute as a tibble
 tidy_results <- function(results) {
-  results %>%
-    dplyr::bind_rows() %>%
+  results |>
+    dplyr::bind_rows() |>
     dplyr::rename(
       close = "c",
       high = "h",
@@ -127,7 +127,7 @@ tidy_results <- function(results) {
       time = "t",
       trade_volume = "v",
       volume_weighted = "vw"
-    ) %>%
+    ) |>
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
     )
