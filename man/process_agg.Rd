@@ -13,5 +13,6 @@ process_agg(json)
 tibble containing information in \code{json}.
 }
 \description{
-Convert the json obtained from an aggregates query of polygon.io into tabular data.
+Convert the json obtained from an aggregates query of polygon.io into tabular
+data.
 }

@@ -14,15 +14,19 @@ aggregate(
   adjusted = TRUE,
   limit = 50000,
   sort = "asc",
-  rate_limit = 5
+  rate_limit = 5,
+  max_reqs = 5
 )
 }
 \arguments{
-\item{ticker}{Specify a case-sensitive ticker symbol. For example, AAPL represents Apple Inc.}
+\item{ticker}{Specify a case-sensitive ticker symbol. For example, AAPL
+represents Apple Inc.}
 
-\item{from}{The start of the aggregate time window. Either a date with the format YYYY-MM-DD or a millisecond timestamp.}
+\item{from}{The start of the aggregate time window. Either a date with the
+format YYYY-MM-DD or a millisecond timestamp.}
 
-\item{to}{The end of the aggregate time window. Either a date with the format YYYY-MM-DD or a millisecond timestamp.}
+\item{to}{The end of the aggregate time window. Either a date with the format
+YYYY-MM-DD or a millisecond timestamp.}
 
 \item{timespan}{The size of the time window.}
 
@@ -32,11 +36,15 @@ aggregate(
 
 \item{adjusted}{Whether or not the results are adjusted for splits.}
 
-\item{limit}{Limits the number of base aggregates queried to create the aggregate results. Max 50000.}
+\item{limit}{Limits the number of base aggregates queried to create the
+aggregate results. Max 50000.}
 
-\item{sort}{Sort the results by timestamp. "asc" will return results in ascending order (oldest at the top), "desc" will return results in descending order (newest at the top).}
+\item{sort}{Sort the results by timestamp. "asc" will return results in
+ascending order (oldest at the top), "desc" will return results in
+descending order (newest at the top).}
 
-\item{rate_limit}{Number of requests allowed per minute. Default = 5 corresponds to the basic plan, all paid plans allow \code{Inf} requests.}
+\item{rate_limit}{Number of requests allowed per minute. Default = 5
+corresponds to the basic plan, all paid plans allow \code{Inf} requests.}
 }
 \description{
 Requests data using the polygon.io Aggregates API.
