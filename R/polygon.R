@@ -8,12 +8,26 @@ query <- function(url, params, api_key, rate_limit, max_reqs = Inf) {
     httr2::req_throttle(rate_limit / 60)
 
   # Execute request
-  httr2::req_perform_iterative(
+  resps <- httr2::req_perform_iterative(
     req,
     next_req = next_req,
     max_reqs = max_reqs
     )
 
+  # Verify all requests completed
+  if (
+    length(resps) == max_reqs &&
+    !is.null(httr2::resp_body_json(resps[[max_reqs]])$next_url)
+  ){
+    cli::cli_warn(
+      c(
+      "!" = "Incomplete results were returned for query.",
+      "x" = "{.arg max_reqs} = {max_reqs} was reached before query finished.",
+      "i" = "For complete results increase {.arg max_reqs} and re-run."
+      )
+      )
+  }
+  resps
   # TODO: Check if any requests failed and warn the user if they did.
 }
 

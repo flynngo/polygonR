@@ -22,15 +22,7 @@ test_that("Error handling", {
 })
 
 test_that("query works iteratively", {
-  # expect_equal(
-  #   nrow(
-  #     aggregate(
-  #       ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
-  #       to = "2023-01-15", limit = 4)
-  #   ),
-  #   5
-  # )
-  # Build API request
+
   expect_equal(
     length(
       query(
@@ -45,7 +37,6 @@ test_that("query works iteratively", {
     ),
     2
   )
-
   expect_equal(
     nrow(
       aggregate(
@@ -53,6 +44,19 @@ test_that("query works iteratively", {
         to = "2023-01-15", limit = 3)
     ),
     5
+  )
+  expect_warning(
+    query(
+      "https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/2023-01-09/2023-01-15",
+      params = list(
+        adjusted = T,
+        sort = "asc",
+        limit = 1
+      ),
+      api_key = get_api_key(),
+      rate_limit = 5,
+      max_reqs = 2),
+    "Incomplete results were returned for query."
   )
 })
 
