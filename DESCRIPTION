@@ -1,6 +1,6 @@
 Package: polygonR
 Title: Interact With the Polygon REST API
-Version: 0.1.1
+Version: 0.2.1
 Authors@R: 
     person("Flynn", "Gewirtz-O'Reilly", ,
     "f.gewirtz-oreilly.1@research.gla.ac.uk", role = c("aut", "cre"))
@@ -15,9 +15,8 @@ Imports:
     cli,
     dplyr,
     glue,
-    httr2,
+    httr2 (>= 1.0.0),
     lubridate,
-    magrittr,
     rlang,
     tibble,
     tidyr
