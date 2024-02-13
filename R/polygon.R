@@ -144,21 +144,9 @@ process_agg <- function(json) {
   tibble::tibble(
     ticker = json[["ticker"]],
     adjusted = json[["adjusted"]],
-    results = tidy_results(results),
+    results = dplyr::bind_rows(results),
   ) |>
-    tidyr::unnest(cols = c("results"))
-}
-
-#' Format results attribute as tidy data
-#'
-#' Convert the results attribute into tabular data.
-#'
-#' @param results results attribute from query (see [`process_agg()`]).
-#'
-#' @return results attribute as a tibble
-tidy_results <- function(results) {
-  results |>
-    dplyr::bind_rows() |>
+    tidyr::unnest(cols = c("results")) |>
     dplyr::rename(
       close = "c",
       high = "h",
