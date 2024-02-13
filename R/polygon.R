@@ -128,6 +128,26 @@ aggregates <- function(ticker,
     httr2::resps_data(\(resp) process_agg(httr2::resp_body_json(resp)))
 }
 
+grouped_daily <- function(date,
+                          include_otc = FALSE,
+                          api_key = get_api_key(),
+                          adjusted = TRUE,
+                          rate_limit = 5,
+                          max_reqs = 5) {
+  params <- list(
+    adjusted = adjusted,
+    include_otc = include_otc
+  )
+  query(
+    glue::glue("https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{date}"), # nolint
+    params = params,
+    api_key = api_key,
+    rate_limit = rate_limit,
+    max_reqs = max_reqs
+  ) |>
+    httr2::resps_data(\(resp) tidy_gd(httr2::resp_body_json(resp)))
+}
+
 #' Convert polygon.io aggregates query from json to tidy format
 #'
 #' Convert the json obtained from an aggregates query of polygon.io into tabular
@@ -143,11 +163,34 @@ process_agg <- function(json) {
   }
   tibble::tibble(
     ticker = json[["ticker"]],
-    adjusted = json[["adjusted"]],
+    adjusted = json[["adjusted"]], # TODO: remove adjusted (it's an arg in call, don't need to return)
     results = dplyr::bind_rows(results),
-  ) |>
+  ) |> # instead of bind_rows -> unnest do bind_cols -> bind_rows
     tidyr::unnest(cols = c("results")) |>
     dplyr::rename(
+      close = "c",
+      high = "h",
+      low = "l",
+      open = "o",
+      time = "t",
+      trade_volume = "v",
+      volume_weighted = "vw"
+    ) |>
+    dplyr::mutate(
+      time = lubridate::as_datetime(.data$time / 1000)
+    )
+}
+
+# Tidy grouped_daily function
+
+tidy_gd <- function(json) {
+  results <- json[["results"]]
+  if (is.null(results)) {
+    return(NULL)
+  }
+  dplyr::bind_rows(results) |>
+    dplyr::rename(
+      ticker = "T",
       close = "c",
       high = "h",
       low = "l",

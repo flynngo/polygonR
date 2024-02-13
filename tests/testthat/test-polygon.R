@@ -66,6 +66,18 @@ test_that("query works iteratively", {
   )
 })
 
+test_that("Grouped daily queries are successful", {
+  expect_no_error(
+    grouped_daily(date = "2023-01-09")
+  )
+  expect_true(any(
+    grouped_daily(date = "2023-01-09", include_otc = TRUE)$ticker == "ALIZF")
+  )
+  expect_false(any(
+    grouped_daily(date = "2023-01-09", include_otc = FALSE)$ticker == "ALIZF")
+  )
+})
+
 test_that("Basic plan rate limit isn't hit", {
   skip("Is tested as a side-effect of previous tests.")
   expect_no_error({
