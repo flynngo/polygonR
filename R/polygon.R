@@ -31,7 +31,6 @@ query <- function(url, params, api_key, rate_limit, max_reqs) {
     req,
     next_req = next_req,
     max_reqs = max_reqs
-    # TODO: add progress = FALSE
   )
 
   if (length(resps) == max_reqs &&
@@ -69,6 +68,8 @@ next_req <- function(resp, req) {
   req |>
     httr2::req_url(url = next_url)
 }
+
+# TODO: add returns to aggregates documentation
 
 #' Request data from polygon aggregates api
 #'
@@ -125,9 +126,10 @@ aggregates <- function(ticker,
     rate_limit = rate_limit,
     max_reqs = max_reqs
   ) |>
-    httr2::resps_data(\(resp) process_agg(httr2::resp_body_json(resp)))
+    httr2::resps_data(\(resp) tidy_aggregates(resp))
 }
 
+# TODO: Document function
 grouped_daily <- function(date,
                           include_otc = FALSE,
                           api_key = get_api_key(),
@@ -145,28 +147,26 @@ grouped_daily <- function(date,
     rate_limit = rate_limit,
     max_reqs = max_reqs
   ) |>
-    httr2::resps_data(\(resp) tidy_gd(httr2::resp_body_json(resp)))
+    httr2::resps_data(\(resp) tidy_grouped_daily(resp))
 }
 
-#' Convert polygon.io aggregates query from json to tidy format
+#' Convert polygon.io aggregates query to tidy format
 #'
-#' Convert the json obtained from an aggregates query of polygon.io into tabular
+#' Convert the response from an aggregates query of polygon.io into tabular
 #' data.
 #'
-#' @param json response object from [`httr2::resp_body_json`]
+#' @param resp query response (see [`httr2::response`])
 #'
-#' @return tibble containing information in `json`.
-process_agg <- function(json) {
-  results <- json[["results"]]
-  if (is.null(results)) {
+#' @return tibble containing data in `resp`.
+tidy_aggregates <- function(resp) {
+  json <- httr2::resp_body_json(resp)
+  if (is.null(json[["results"]])) {
     return(NULL)
   }
-  tibble::tibble(
+  dplyr::bind_cols(
     ticker = json[["ticker"]],
-    adjusted = json[["adjusted"]], # TODO: remove adjusted (it's an arg in call, don't need to return)
-    results = dplyr::bind_rows(results),
-  ) |> # instead of bind_rows -> unnest do bind_cols -> bind_rows
-    tidyr::unnest(cols = c("results")) |>
+    results = dplyr::bind_rows(json[["results"]]),
+  ) |>
     dplyr::rename(
       close = "c",
       high = "h",
@@ -181,14 +181,16 @@ process_agg <- function(json) {
     )
 }
 
+# TODO: document function
+
 # Tidy grouped_daily function
 
-tidy_gd <- function(json) {
-  results <- json[["results"]]
-  if (is.null(results)) {
+tidy_grouped_daily <- function(resp) {
+  json <- httr2::resp_body_json(resp)
+  if (is.null(json[["results"]])) {
     return(NULL)
   }
-  dplyr::bind_rows(results) |>
+  dplyr::bind_rows(json[["results"]]) |>
     dplyr::rename(
       ticker = "T",
       close = "c",
