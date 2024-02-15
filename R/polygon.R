@@ -101,8 +101,8 @@ next_req <- function(resp, req) {
 #' @export
 #'
 #' @examples
-#' aggregates(ticker = "AAPL", timespan = "day", from = "2024-01-09", to = "2024-02-09")
-#' aggregates(ticker = "AMZN", timespan = "hour", from = "2024-01-09", to = "2024-02-09")
+#' aggregates("AAPL", timespan = "day", from = "2024-01-09", to = "2024-02-09")
+#' aggregates("AMZN", timespan = "hour", from = "2024-01-09", to = "2024-02-09")
 aggregates <- function(ticker,
                        from,
                        to,
@@ -136,7 +136,7 @@ aggregates <- function(ticker,
 #'
 #' @param date Either a date with the format "YYYY-MM-DD" or a millisecond
 #'   timestamp.
-#' @param include_otc Include OTC securities in the response (default = `FALSE`).
+#' @param include_otc Include OTC securities (default = `FALSE`).
 #' @inheritParams aggregates
 #'
 #' @returns A tibble containing the requested data.
@@ -185,7 +185,7 @@ open_close <- function(ticker,
     params = params,
     api_key = api_key,
     rate_limit = rate_limit
-    ) |>
+  ) |>
     httr2::resps_data(\(resp) tidy_open_close(resp))
 }
 
@@ -214,8 +214,8 @@ prev_close <- function(ticker,
     params = params,
     api_key = api_key,
     rate_limit = rate_limit
-    ) |>
-     httr2::resps_data(\(resp) tidy_prev_close(resp))
+  ) |>
+    httr2::resps_data(\(resp) tidy_prev_close(resp))
 }
 
 
@@ -289,7 +289,7 @@ tidy_open_close <- function(resp) {
       date = "from",
       pre_market = "preMarket",
       ticker = "symbol"
-      ) |>
+    ) |>
     dplyr::mutate(
       date = lubridate::as_date(.data$date)
     ) |>

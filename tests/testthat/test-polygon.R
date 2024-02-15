@@ -36,9 +36,9 @@ test_that("API key helper works", {
     new = c("POLYGON_KEY" = "NULL"), {
       expect_message(set_api_key(new_key), "POLYGON_KEY set")
       expect_identical(Sys.getenv("POLYGON_KEY"), new_key)
-      }
-    )
-  })
+    }
+  )
+})
 
 test_that("query works iteratively", {
   expect_identical(
@@ -88,7 +88,7 @@ test_that("Aggregates queries are successful", {
   )
   expect_identical(
     colnames(aapl),
-    c("ticker", "volume", "volume_weighted", "open", "close", "high", "low", "time", "transactions")
+    c("ticker", "volume", "volume_weighted", "open", "close", "high", "low", "time", "transactions") # nolint
   )
   expect_no_error(
     amzn <- aggregates(
@@ -103,11 +103,15 @@ test_that("Grouped daily queries are successful", {
   expect_no_error(
     grouped_daily(date = "2023-01-09")
   )
-  expect_true(any(
-    grouped_daily(date = "2023-01-09", include_otc = TRUE)$ticker == "ALIZF")
+  expect_true(
+    any(
+      "ALIZF" == grouped_daily(date = "2023-01-09", include_otc = TRUE)$ticker
+    )
   )
-  expect_false(any(
-    grouped_daily(date = "2023-01-09", include_otc = FALSE)$ticker == "ALIZF")
+  expect_false(
+    any(
+      "ALIZF" == grouped_daily(date = "2023-01-09", include_otc = FALSE)$ticker
+    )
   )
 })
 
@@ -121,7 +125,7 @@ test_that("Open/close queries are successful", {
     low = 414.75,
     close = 415.26,
     volume = 21202920
-    )
+  )
   alizf_expected <- tibble::tibble(
     open = 266.00,
     high = 266.00,
@@ -129,7 +133,7 @@ test_that("Open/close queries are successful", {
     close = 262.08,
     volume = 100,
     otc = TRUE
-    )
+  )
 
   # Different sites list different trade volumes.
   tol <- c(open = .005, high = .005, low = .005, close = .005, volume = 100)
@@ -153,15 +157,15 @@ test_that("Previous close queries are successful", {
     c(
       "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
       "time", "transactions"
-      )
     )
+  )
   expect_identical(
     colnames(danoy),
     c(
       "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
       "time", "transactions", "otc"
-      )
     )
+  )
 
 })
 
