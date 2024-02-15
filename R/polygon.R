@@ -20,7 +20,7 @@
 #'   one error object, if one of the requests errors. If present, the error
 #'   object will always be the last element in the list.
 #' @noRd
-query <- function(url, params, api_key, rate_limit, max_reqs) {
+query <- function(url, params, api_key, rate_limit, max_reqs = 1) {
   req <- httr2::request(url) |>
     httr2::req_url_query(!!!params) |>
     httr2::req_user_agent("polygonR (https://github.com/flynngo/polygonR)") |>
@@ -130,15 +130,11 @@ aggregates <- function(ticker,
 }
 
 # TODO: Document function
-
-# TODO: remove max_reqs I don't think it's an issue for this
-# function. (Would need to add default values to query)
 grouped_daily <- function(date,
                           include_otc = FALSE,
                           api_key = get_api_key(),
                           adjusted = TRUE,
-                          rate_limit = 5,
-                          max_reqs = 5) {
+                          rate_limit = 5) {
   params <- list(
     adjusted = adjusted,
     include_otc = include_otc
@@ -147,8 +143,7 @@ grouped_daily <- function(date,
     glue::glue("https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{date}"), # nolint
     params = params,
     api_key = api_key,
-    rate_limit = rate_limit,
-    max_reqs = max_reqs
+    rate_limit = rate_limit
   ) |>
     httr2::resps_data(\(resp) tidy_grouped_daily(resp))
 }
@@ -166,9 +161,8 @@ open_close <- function(ticker,
     glue::glue("https://api.polygon.io/v1/open-close/{ticker}/{date}"),
     params = params,
     api_key = api_key,
-    rate_limit = rate_limit,
-    max_reqs = 5 # TODO: add as default value for query
-  ) |>
+    rate_limit = rate_limit
+    ) |>
     httr2::resps_data(\(resp) tidy_open_close(resp))
 }
 
@@ -187,9 +181,8 @@ prev_close <- function(ticker,
     glue::glue("https://api.polygon.io/v2/aggs/ticker/{ticker}/prev"),
     params = params,
     api_key = api_key,
-    rate_limit = rate_limit,
-    max_reqs = 5 # TODO: add as default value for query, then remove this
-  ) |>
+    rate_limit = rate_limit
+    ) |>
      httr2::resps_data(\(resp) tidy_prev_close(resp))
 }
 
