@@ -1,3 +1,5 @@
+# TODO: update some expect_equal to expect_identical
+
 test_that("Error handling", {
   expect_error(
     aggregates(
@@ -50,20 +52,22 @@ test_that("query works iteratively", {
 
 test_that("Aggregates queries are successful", {
   expect_no_error(
-    aggregates(
-      ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
-      to = "2023-01-09", limit = 120
+    aapl <- aggregates(
+      ticker = "AAPL", multiplier = 1, timespan = "day", from = "2024-01-09",
+      to = "2024-02-09", limit = 120
     )
   )
   expect_equal(
-    nrow(
-      aggregates(
-        ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
-        to = "2023-01-15", limit = 3
-      )
-    ),
-    5
+    colnames(aapl),
+    c("ticker", "volume", "volume_weighted", "open", "close", "high", "low", "time", "transactions")
   )
+  expect_no_error(
+    amzn <- aggregates(
+      ticker = "AMZN", multiplier = 1, timespan = "day", from = "2024-02-08",
+      to = "2024-02-14", limit = 3
+    )
+  )
+  expect_equal(nrow(amzn), 5)
 })
 
 test_that("Grouped daily queries are successful", {
@@ -87,23 +91,23 @@ test_that("Open/close queries are successful", {
     high = 420.74,
     low = 414.75,
     close = 415.26,
-    trade_volume = 21202920
+    volume = 21202920
     )
   alizf_expected <- tibble::tibble(
     open = 266.00,
     high = 266.00,
     low = 262.00,
     close = 262.08,
-    trade_volume = 100,
+    volume = 100,
     otc = TRUE
     )
 
   # Different sites list different trade volumes.
-  tolerance <- c(open = .005, high = .005, low = .005, close = .005, trade_volume = 100) # nolint
+  tol <- c(open = .005, high = .005, low = .005, close = .005, volume = 100)
 
-  for (i in names(tolerance)) {
-    expect_lte(abs(msft[, i] - msft_expected[i]), tolerance[i])
-    expect_lte(abs(alizf[, i] - alizf_expected[i]), tolerance[i])
+  for (i in names(tol)) {
+    expect_lte(abs(msft[, i] - msft_expected[i]), tol[i])
+    expect_lte(abs(alizf[, i] - alizf_expected[i]), tol[i])
   }
   expect_equal(alizf[, "otc"], alizf_expected["otc"])
 })
@@ -115,13 +119,20 @@ test_that("Previous close queries are successful", {
   expect_no_error(
     danoy <- prev_close("DANOY")
   )
-  expected_cols <- c(
-    "ticker", "trade_volume", "volume_weighted", "open", "close", "high", "low",
-    "time", "n", "otc"
+  expect_equal(
+    colnames(nflx),
+    c(
+      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
+      "time", "transactions"
+      )
     )
-  # TODO: I'm planning to change column names, these tests will need to be updated accordingly
-  expect_equal(colnames(nflx), expected_cols[-length(expected_cols)])
-  expect_equal(colnames(danoy), expected_cols)
+  expect_equal(
+    colnames(danoy),
+    c(
+      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
+      "time", "transactions", "otc"
+      )
+    )
 
 })
 

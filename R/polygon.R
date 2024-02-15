@@ -1,8 +1,3 @@
-# TODO: change n in results to transactions so that it is more informative.
-# TODO: change trade_volume in volume to transactions so that it is more
-# shorter, I can be more informative in the function docs.
-
-
 #' Query polygon.io REST API
 #'
 #' Query the polygon.io REST API. Meant for internal use only.
@@ -222,8 +217,9 @@ tidy_aggregates <- function(resp) {
       low = "l",
       open = "o",
       time = "t",
-      trade_volume = "v",
-      volume_weighted = "vw"
+      volume = "v",
+      volume_weighted = "vw",
+      transactions = "n"
     ) |>
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
@@ -247,8 +243,9 @@ tidy_grouped_daily <- function(resp) {
       low = "l",
       open = "o",
       time = "t",
-      trade_volume = "v",
-      volume_weighted = "vw"
+      volume = "v",
+      volume_weighted = "vw",
+      transactions = "n"
     ) |>
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
@@ -264,9 +261,8 @@ tidy_open_close <- function(resp) {
       after_hours = "afterHours",
       date = "from",
       pre_market = "preMarket",
-      ticker = "symbol",
-      trade_volume = "volume"
-    ) |>
+      ticker = "symbol"
+      ) |>
     dplyr::mutate(
       date = lubridate::as_date(.data$date)
     ) |>
@@ -287,8 +283,9 @@ tidy_prev_close <- function(resp) {
       low = "l",
       open = "o",
       time = "t",
-      trade_volume = "v",
-      volume_weighted = "vw"
+      volume = "v",
+      volume_weighted = "vw",
+      transactions = "n"
     ) |>
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
