@@ -34,9 +34,6 @@ A tibble containing the requested data.
 \description{
 Get the open, close and after-hours prices of a stock on a particular date.
 }
-\examples{
-open_close("AAPL", date = "2024-01-09")
-}
 \references{
-\insertRef{stocksDocumentation}{polygonR}.
+\insertRef{stocksDocumentation}{polygonR}
 }

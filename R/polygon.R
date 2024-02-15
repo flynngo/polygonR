@@ -97,12 +97,8 @@ next_req <- function(resp, req) {
 #'
 #' @returns A tibble containing price information of `ticker` for each of the
 #'   requested periods.
-#' @references \insertRef{stocksDocumentation}{polygonR}.
+#' @references \insertRef{stocksDocumentation}{polygonR}
 #' @export
-#'
-#' @examples
-#' aggregates("AAPL", timespan = "day", from = "2024-01-09", to = "2024-02-09")
-#' aggregates("AMZN", timespan = "hour", from = "2024-01-09", to = "2024-02-09")
 aggregates <- function(ticker,
                        from,
                        to,
@@ -140,10 +136,8 @@ aggregates <- function(ticker,
 #' @inheritParams aggregates
 #'
 #' @returns A tibble containing the requested data.
-#' @references \insertRef{stocksDocumentation}{polygonR}.
+#' @references \insertRef{stocksDocumentation}{polygonR}
 #' @export
-#'
-#' @examples grouped_daily(date = "2024-01-09")
 grouped_daily <- function(date,
                           include_otc = FALSE,
                           api_key = get_api_key(),
@@ -168,10 +162,8 @@ grouped_daily <- function(date,
 #' @inheritParams grouped_daily
 #'
 #' @returns A tibble containing the requested data.
-#' @references \insertRef{stocksDocumentation}{polygonR}.
+#' @references \insertRef{stocksDocumentation}{polygonR}
 #' @export
-#'
-#' @examples open_close("AAPL", date = "2024-01-09")
 open_close <- function(ticker,
                        date,
                        adjusted = TRUE,
@@ -199,9 +191,7 @@ open_close <- function(ticker,
 #'
 #' @returns A tibble containing the requested data.
 #' @export
-#' @references \insertRef{stocksDocumentation}{polygonR}.
-#'
-#' @examples prev_close("AAPL")
+#' @references \insertRef{stocksDocumentation}{polygonR}
 prev_close <- function(ticker,
                        adjusted = TRUE,
                        api_key = get_api_key(),
