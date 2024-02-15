@@ -120,7 +120,7 @@ aggregates <- function(ticker,
     limit = limit
   )
   query(
-    glue::glue("https://api.polygon.io/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{from}/{to}"), # nolint
+    glue::glue("{base_url()}/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{from}/{to}"), # nolint
     params = params,
     api_key = api_key,
     rate_limit = rate_limit,
@@ -140,7 +140,7 @@ grouped_daily <- function(date,
     include_otc = include_otc
   )
   query(
-    glue::glue("https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{date}"), # nolint
+    glue::glue("{base_url()}/v2/aggs/grouped/locale/us/market/stocks/{date}"),
     params = params,
     api_key = api_key,
     rate_limit = rate_limit
@@ -158,7 +158,7 @@ open_close <- function(ticker,
     adjusted = adjusted
   )
   query(
-    glue::glue("https://api.polygon.io/v1/open-close/{ticker}/{date}"),
+    glue::glue("{base_url()}/v1/open-close/{ticker}/{date}"),
     params = params,
     api_key = api_key,
     rate_limit = rate_limit
@@ -178,7 +178,7 @@ prev_close <- function(ticker,
     adjusted = adjusted
   )
   query(
-    glue::glue("https://api.polygon.io/v2/aggs/ticker/{ticker}/prev"),
+    glue::glue("{base_url()}/v2/aggs/ticker/{ticker}/prev"),
     params = params,
     api_key = api_key,
     rate_limit = rate_limit
@@ -283,6 +283,10 @@ tidy_prev_close <- function(resp) {
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
     )
+}
+
+base_url <- function() {
+  "https://api.polygon.io"
 }
 
 # Helper functions for API key
