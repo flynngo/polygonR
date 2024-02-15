@@ -130,6 +130,9 @@ aggregates <- function(ticker,
 }
 
 # TODO: Document function
+
+# TODO: remove max_reqs I don't think it's an issue for this
+# function. (Would need to add default values to query)
 grouped_daily <- function(date,
                           include_otc = FALSE,
                           api_key = get_api_key(),
@@ -149,6 +152,26 @@ grouped_daily <- function(date,
   ) |>
     httr2::resps_data(\(resp) tidy_grouped_daily(resp))
 }
+
+# TODO: document
+open_close <- function(ticker,
+                       date,
+                       adjusted = TRUE,
+                       api_key = get_api_key(),
+                       rate_limit = 5) {
+  params <- list(
+    adjusted = adjusted
+  )
+  query(
+    glue::glue("https://api.polygon.io/v1/open-close/{ticker}/{date}"),
+    params = params,
+    api_key = api_key,
+    rate_limit = rate_limit,
+    max_reqs = 5 # TODO: add as default value for query
+  ) |>
+    httr2::resps_data(\(resp) tidy_open_close(resp))
+}
+
 
 #' Convert polygon.io aggregates query to tidy format
 #'
@@ -204,6 +227,24 @@ tidy_grouped_daily <- function(resp) {
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
     )
+}
+
+# TODO: document
+tidy_open_close <- function(resp) {
+  resp |>
+    httr2::resp_body_json() |>
+    dplyr::bind_rows() |>
+    dplyr::rename(
+      after_hours = "afterHours",
+      date = "from",
+      pre_market = "preMarket",
+      ticker = "symbol",
+      trade_volume = "volume"
+    ) |>
+    dplyr::mutate(
+      date = lubridate::as_date(.data$date)
+    ) |>
+    dplyr::select(-c("status"))
 }
 
 # Helper functions for API key

@@ -78,6 +78,39 @@ test_that("Grouped daily queries are successful", {
   )
 })
 
+test_that("open_close successful", {
+  msft <- open_close(ticker = "MSFT", date = "2024-02-12")
+  alizf <- open_close(ticker = "ALIZF", date = "2024-02-01")
+  msft_expected <- tibble::tibble(
+    open = 420.56,
+    high = 420.74,
+    low = 414.75,
+    close = 415.26,
+    trade_volume = 21202920
+    )
+  alizf_expected <- tibble::tibble(
+    open = 266.00,
+    high = 266.00,
+    low = 262.00,
+    close = 262.08,
+    trade_volume = 100,
+    otc = TRUE
+    )
+  # Different sites list different trade volumes.
+  tolerance <- c(
+    open = .005,
+    high = .005,
+    low = .005,
+    close = .005,
+    trade_volume = 100)
+
+  for (i in names(tolerance)) {
+    expect_lte(abs(msft[, i] - msft_expected[i]), tolerance[i])
+    expect_lte(abs(alizf[, i] - alizf_expected[i]), tolerance[i])
+  }
+  expect_equal(alizf[, "otc"], alizf_expected["otc"])
+})
+
 test_that("Basic plan rate limit isn't hit", {
   skip("Is tested as a side-effect of previous tests.")
   expect_no_error({
