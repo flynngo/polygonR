@@ -1,6 +1,6 @@
 Package: polygonR
 Title: Interact With the Polygon REST API
-Version: 0.2.1
+Version: 0.3.1
 Authors@R: 
     person("Flynn", "Gewirtz-O'Reilly", ,
     "f.gewirtz-oreilly.1@research.gla.ac.uk", role = c("aut", "cre"))
@@ -17,11 +17,13 @@ Imports:
     glue,
     httr2 (>= 1.0.0),
     lubridate,
-    rlang,
-    tibble,
-    tidyr
+    Rdpack,
+    rlang
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tibble,
+    withr
 Config/testthat/edition: 3
 URL: https://github.com/flynngo/polygonR
 BugReports: https://github.com/flynngo/polygonR/issues
+RdMacros: Rdpack
