@@ -12,10 +12,8 @@
 #'   exceeds the amount of data that is allowed for a single request then
 #'   `query` will iteratively send requests until either the query is completed
 #'   or `max_reqs` requests are sent.
-#'
 #' @seealso [`httr2::req_perform_iterative()`], which handles the underlying
 #'   implementation.
-#'
 #' @returns A list, at most length `max_reqs`, containing responses and possibly
 #'   one error object, if one of the requests errors. If present, the error
 #'   object will always be the last element in the list.
@@ -53,10 +51,8 @@ query <- function(url, params, api_key, rate_limit, max_reqs = 1) {
 #'
 #' @param resp [`httr2::response()`] for previous iteration.
 #' @param req [`httr2::request()`] for previous iteration.
-#'
 #' @return Either [`httr2::request()`] for the next iteration or `NULL` if the
 #'   query is complete.
-#'
 #' @seealso [`httr2::req_perform_iterative()`] for general information about
 #'   `next_req`.
 #' @noRd
@@ -69,11 +65,10 @@ next_req <- function(resp, req) {
     httr2::req_url(url = next_url)
 }
 
-# TODO: add returns to aggregates documentation
-
-#' Request data from polygon aggregates api
+#' Get aggregate bars for a stock over a time period
 #'
-#' Requests data using the polygon.io aggregates API.
+#' Use the aggregates API to get aggregate bars for a particular stock over a
+#' given date range in custom time window sizes.
 #'
 #' @param ticker Specify a case-sensitive ticker symbol. For example, "AAPL"
 #'   represents Apple Inc.
@@ -100,9 +95,14 @@ next_req <- function(resp, req) {
 #'   send requests until either the query is completed or `max_reqs` requests
 #'   are sent. See `limit` to increase the maximum request size.
 #'
-#' @references \url{https://polygon.io/docs/} for further information about
-#'   arguments for polygon.io API requests.
+#' @returns A tibble containing price information of `ticker` for each of the
+#'   requested periods.
+#' @references \insertRef{stocksDocumentation}{polygonR}.
 #' @export
+#'
+#' @examples
+#' aggregates(ticker = "AAPL", timespan = "day", from = "2024-01-09", to = "2024-02-09")
+#' aggregates(ticker = "AMZN", timespan = "hour", from = "2024-01-09", to = "2024-02-09")
 aggregates <- function(ticker,
                        from,
                        to,
@@ -129,7 +129,21 @@ aggregates <- function(ticker,
     httr2::resps_data(\(resp) tidy_aggregates(resp))
 }
 
-# TODO: Document function
+#' Get the daily open, high, low, and close on a particular date
+#'
+#' Get the daily open, high, low, and close (OHLC) for the entire
+#' stocks/equities markets on a particular date.
+#'
+#' @param date Either a date with the format "YYYY-MM-DD" or a millisecond
+#'   timestamp.
+#' @param include_otc Include OTC securities in the response (default = `FALSE`).
+#' @inheritParams aggregates
+#'
+#' @returns A tibble containing the requested data.
+#' @references \insertRef{stocksDocumentation}{polygonR}.
+#' @export
+#'
+#' @examples grouped_daily(date = "2024-01-09")
 grouped_daily <- function(date,
                           include_otc = FALSE,
                           api_key = get_api_key(),
@@ -148,7 +162,16 @@ grouped_daily <- function(date,
     httr2::resps_data(\(resp) tidy_grouped_daily(resp))
 }
 
-# TODO: document
+#' Get the open, close and after-hours prices of a stock on a particular date.
+#'
+#' @inheritParams aggregates
+#' @inheritParams grouped_daily
+#'
+#' @returns A tibble containing the requested data.
+#' @references \insertRef{stocksDocumentation}{polygonR}.
+#' @export
+#'
+#' @examples open_close("AAPL", date = "2024-01-09")
 open_close <- function(ticker,
                        date,
                        adjusted = TRUE,
@@ -166,10 +189,19 @@ open_close <- function(ticker,
     httr2::resps_data(\(resp) tidy_open_close(resp))
 }
 
-# TODO: document
-
 # TODO: Need to check what the API call returns on a Sunday. Is it the Friday
 # close value, or something else?
+
+
+#' Get the previous day's open, high, low, and close (OHLC) for a stock.
+#'
+#' @inheritParams aggregates
+#'
+#' @returns A tibble containing the requested data.
+#' @export
+#' @references \insertRef{stocksDocumentation}{polygonR}.
+#'
+#' @examples prev_close("AAPL")
 prev_close <- function(ticker,
                        adjusted = TRUE,
                        api_key = get_api_key(),
@@ -187,14 +219,19 @@ prev_close <- function(ticker,
 }
 
 
-#' Convert polygon.io aggregates query to tidy format
+#' Convert query results to tidy format
 #'
-#' Convert the response from an aggregates query of polygon.io into tabular
+#' Convert the response from query of polygon.io into tabular
 #' data.
 #'
 #' @param resp query response (see [`httr2::response`])
+#' @return A tibble containing the data in `resp`.
 #'
-#' @return tibble containing data in `resp`.
+#' @name tidy_resp
+#' @noRd
+NULL
+
+#' @rdname tidy_resp
 tidy_aggregates <- function(resp) {
   json <- httr2::resp_body_json(resp)
   if (is.null(json[["results"]])) {
@@ -219,10 +256,7 @@ tidy_aggregates <- function(resp) {
     )
 }
 
-# TODO: document function
-
-# Tidy grouped_daily function
-
+#' @rdname tidy_resp
 tidy_grouped_daily <- function(resp) {
   json <- httr2::resp_body_json(resp)
   if (is.null(json[["results"]])) {
@@ -245,7 +279,7 @@ tidy_grouped_daily <- function(resp) {
     )
 }
 
-# TODO: document
+#' @rdname tidy_resp
 tidy_open_close <- function(resp) {
   resp |>
     httr2::resp_body_json() |>
@@ -262,7 +296,7 @@ tidy_open_close <- function(resp) {
     dplyr::select(-c("status"))
 }
 
-# TODO: document
+#' @rdname tidy_resp
 tidy_prev_close <- function(resp) {
   json <- httr2::resp_body_json(resp)
   if (is.null(json[["results"]])) {
@@ -309,6 +343,9 @@ get_api_key <- function() {
 
 #' Set API key as environment variable
 #'
+#' @param key Default = `NULL` will prompt the user to enter their API key and
+#'   is recommended. Alternatively users can pass their API key as a string,
+#'   although this will print the key in the console, which is less secure.
 #'
 #' @return NULL
 #' @export

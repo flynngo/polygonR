@@ -2,7 +2,7 @@
 % Please edit documentation in R/polygon.R
 \name{aggregates}
 \alias{aggregates}
-\title{Request data from polygon aggregates api}
+\title{Get aggregate bars for a stock over a time period}
 \usage{
 aggregates(
   ticker,
@@ -54,10 +54,18 @@ exceeds the maximum size for a single request then \code{query} will iteratively
 send requests until either the query is completed or \code{max_reqs} requests
 are sent. See \code{limit} to increase the maximum request size.}
 }
+\value{
+A tibble containing price information of \code{ticker} for each of the
+requested periods.
+}
 \description{
-Requests data using the polygon.io aggregates API.
+Use the aggregates API to get aggregate bars for a particular stock over a
+given date range in custom time window sizes.
+}
+\examples{
+aggregates(ticker = "AAPL", timespan = "day", from = "2024-01-09", to = "2024-02-09")
+aggregates(ticker = "AMZN", timespan = "hour", from = "2024-01-09", to = "2024-02-09")
 }
 \references{
-\url{https://polygon.io/docs/} for further information about
-arguments for polygon.io API requests.
+\insertRef{stocksDocumentation}{polygonR}.
 }
