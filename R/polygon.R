@@ -1,3 +1,8 @@
+# TODO: change n in results to transactions so that it is more informative.
+# TODO: change trade_volume in volume to transactions so that it is more
+# shorter, I can be more informative in the function docs.
+
+
 #' Query polygon.io REST API
 #'
 #' Query the polygon.io REST API. Meant for internal use only.
@@ -172,6 +177,27 @@ open_close <- function(ticker,
     httr2::resps_data(\(resp) tidy_open_close(resp))
 }
 
+# TODO: document
+
+# TODO: Need to check what the API call returns on a Sunday. Is it the Friday
+# close value, or something else?
+prev_close <- function(ticker,
+                       adjusted = TRUE,
+                       api_key = get_api_key(),
+                       rate_limit = 5) {
+  params <- list(
+    adjusted = adjusted
+  )
+  query(
+    glue::glue("https://api.polygon.io/v2/aggs/ticker/{ticker}/prev"),
+    params = params,
+    api_key = api_key,
+    rate_limit = rate_limit,
+    max_reqs = 5 # TODO: add as default value for query, then remove this
+  ) |>
+     httr2::resps_data(\(resp) tidy_prev_close(resp))
+}
+
 
 #' Convert polygon.io aggregates query to tidy format
 #'
@@ -245,6 +271,28 @@ tidy_open_close <- function(resp) {
       date = lubridate::as_date(.data$date)
     ) |>
     dplyr::select(-c("status"))
+}
+
+# TODO: document
+tidy_prev_close <- function(resp) {
+  json <- httr2::resp_body_json(resp)
+  if (is.null(json[["results"]])) {
+    return(NULL)
+  }
+  dplyr::bind_rows(json[["results"]]) |>
+    dplyr::rename(
+      ticker = "T",
+      close = "c",
+      high = "h",
+      low = "l",
+      open = "o",
+      time = "t",
+      trade_volume = "v",
+      volume_weighted = "vw"
+    ) |>
+    dplyr::mutate(
+      time = lubridate::as_datetime(.data$time / 1000)
+    )
 }
 
 # Helper functions for API key
