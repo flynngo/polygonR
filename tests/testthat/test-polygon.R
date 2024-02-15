@@ -1,17 +1,26 @@
 # TODO: update some expect_equal to expect_identical
 
 test_that("Error handling", {
+  params <-  list(
+    adjusted = TRUE,
+    sort = "asc",
+    limit = 1
+  )
   expect_error(
-    aggregates(
-      ticker = "AAPL", multiplier = 1, timespan = "day", from = "3023-01-09",
-      to = "3023-01-09", limit = 120
+    query(
+      "https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/3023-01-09/3023-01-09", # nolint
+      params = params,
+      api_key = get_api_key(),
+      rate_limit = 5
     ),
     "HTTP 403"
   )
   expect_error(
-    aggregates(
-      ticker = "AAPL", multiplier = 1, timespan = "day", from = "2023-01-09",
-      to = "2023-01-09", limit = 120, api_key = "invalid key"
+    query(
+      "https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/2023-01-09/2023-01-09", # nolint
+      params = params,
+      api_key = "invalid key",
+      rate_limit = 5
     ),
     "HTTP 401"
   )
