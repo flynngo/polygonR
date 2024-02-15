@@ -1,5 +1,3 @@
-# TODO: update some expect_equal to expect_identical
-
 test_that("Error handling", {
   params <-  list(
     adjusted = TRUE,
@@ -27,7 +25,7 @@ test_that("Error handling", {
 })
 
 test_that("query works iteratively", {
-  expect_equal(
+  expect_identical(
     length(
       query(
         "https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/2023-01-09/2023-01-15", # nolint
@@ -41,7 +39,7 @@ test_that("query works iteratively", {
         max_reqs = 2
       )
     ),
-    2
+    2L
   )
   expect_warning(
     query(
@@ -66,7 +64,7 @@ test_that("Aggregates queries are successful", {
       to = "2024-02-09", limit = 120
     )
   )
-  expect_equal(
+  expect_identical(
     colnames(aapl),
     c("ticker", "volume", "volume_weighted", "open", "close", "high", "low", "time", "transactions")
   )
@@ -76,7 +74,7 @@ test_that("Aggregates queries are successful", {
       to = "2024-02-14", limit = 3
     )
   )
-  expect_equal(nrow(amzn), 5)
+  expect_identical(nrow(amzn), 5L)
 })
 
 test_that("Grouped daily queries are successful", {
@@ -118,7 +116,7 @@ test_that("Open/close queries are successful", {
     expect_lte(abs(msft[, i] - msft_expected[i]), tol[i])
     expect_lte(abs(alizf[, i] - alizf_expected[i]), tol[i])
   }
-  expect_equal(alizf[, "otc"], alizf_expected["otc"])
+  expect_identical(alizf[, "otc"], alizf_expected["otc"])
 })
 
 test_that("Previous close queries are successful", {
@@ -128,14 +126,14 @@ test_that("Previous close queries are successful", {
   expect_no_error(
     danoy <- prev_close("DANOY")
   )
-  expect_equal(
+  expect_identical(
     colnames(nflx),
     c(
       "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
       "time", "transactions"
       )
     )
-  expect_equal(
+  expect_identical(
     colnames(danoy),
     c(
       "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
