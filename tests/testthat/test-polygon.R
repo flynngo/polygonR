@@ -30,6 +30,16 @@ test_that("Error handling", {
   )
 })
 
+test_that("API key helper works", {
+  new_key <- "ABC123"
+  withr::with_envvar(
+    new = c("POLYGON_KEY" = "NULL"), {
+      expect_message(set_api_key(new_key), "POLYGON_KEY set")
+      expect_identical(Sys.getenv("POLYGON_KEY"), new_key)
+      }
+    )
+  })
+
 test_that("query works iteratively", {
   expect_identical(
     length(

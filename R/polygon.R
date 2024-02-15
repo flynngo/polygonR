@@ -312,8 +312,10 @@ get_api_key <- function() {
 #'
 #' @return NULL
 #' @export
-set_api_key <- function() {
-  key <- askpass::askpass("Please enter your API key")
+set_api_key <- function(key = NULL) {
+  if (is.null(key)) {
+    key <- askpass::askpass("Please enter your API key")
+  }
   Sys.setenv("POLYGON_KEY" = key)
   cli::cli_inform(c("v" = "POLYGON_KEY set."))
 }
