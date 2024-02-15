@@ -16,7 +16,7 @@ grouped_daily(
 \item{date}{Either a date with the format "YYYY-MM-DD" or a millisecond
 timestamp.}
 
-\item{include_otc}{Include OTC securities in the response (default = \code{FALSE}).}
+\item{include_otc}{Include OTC securities (default = \code{FALSE}).}
 
 \item{api_key}{String containing API key for polygon.io.}
 
@@ -34,9 +34,6 @@ A tibble containing the requested data.
 Get the daily open, high, low, and close (OHLC) for the entire
 stocks/equities markets on a particular date.
 }
-\examples{
-grouped_daily(date = "2024-01-09")
-}
 \references{
-\insertRef{stocksDocumentation}{polygonR}.
+\insertRef{stocksDocumentation}{polygonR}
 }

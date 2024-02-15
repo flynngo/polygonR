@@ -25,9 +25,6 @@ A tibble containing the requested data.
 \description{
 Get the previous day's open, high, low, and close (OHLC) for a stock.
 }
-\examples{
-prev_close("AAPL")
-}
 \references{
-\insertRef{stocksDocumentation}{polygonR}.
+\insertRef{stocksDocumentation}{polygonR}
 }

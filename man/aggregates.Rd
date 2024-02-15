@@ -62,10 +62,6 @@ requested periods.
 Use the aggregates API to get aggregate bars for a particular stock over a
 given date range in custom time window sizes.
 }
-\examples{
-aggregates(ticker = "AAPL", timespan = "day", from = "2024-01-09", to = "2024-02-09")
-aggregates(ticker = "AMZN", timespan = "hour", from = "2024-01-09", to = "2024-02-09")
-}
 \references{
-\insertRef{stocksDocumentation}{polygonR}.
+\insertRef{stocksDocumentation}{polygonR}
 }
