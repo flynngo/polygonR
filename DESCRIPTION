@@ -1,6 +1,6 @@
 Package: polygonR
 Title: Interact With the Polygon REST API
-Version: 0.2.1
+Version: 0.3.1
 Authors@R: 
     person("Flynn", "Gewirtz-O'Reilly", ,
     "f.gewirtz-oreilly.1@research.gla.ac.uk", role = c("aut", "cre"))
