@@ -180,3 +180,22 @@ test_that("Basic plan rate limit isn't hit", {
     }
   })
 })
+
+test_that("Ticker market detection", {
+  ticker_markets <- tibble::tribble(
+    ~ticker, ~markets, ~expected,
+    "X:BTCUSD", "crypto", "crypto",
+    "X:ETHAUD", "crypto", "crypto",
+    "C:ZARNOK", "fx", "fx",
+    "C:GBPUSD", "fx", "fx",
+    "AAL", "stocks", "stocks",
+    "ESGV", "stocks", "stocks",
+    "HIZOF", "otc", "stocks",
+    "DANOY", "otc", "stocks",
+    "I:DJITLS", "indices", "indices",
+    "I:NQGIHEIEUR", "indices", "indices"
+    )
+  expect_identical(
+    map_chr(ticker_markets$ticker, ~market_type(.x)),
+    ticker_markets$expected)
+})

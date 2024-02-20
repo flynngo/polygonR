@@ -309,6 +309,28 @@ tidy_prev_close <- function(resp) {
     )
 }
 
+#' @rdname tidy_resp
+tidy_tickers <- function(resp) {
+  json <- httr2::resp_body_json(resp)
+  if (is.null(json[["results"]])) {
+    return(NULL)
+  }
+  dplyr::bind_rows(json[["results"]])
+}
+
+# Detect market type (for internal use)
+# TODO: document
+market_type <- function(ticker) {
+  dplyr::case_when(
+    str_detect(ticker, "^C:") ~ "fx",
+    str_detect(ticker, "^I:") ~ "indices",
+    str_detect(ticker, "^X:") ~ "crypto",
+    .default = "stocks"
+  )
+}
+
+
+# TODO: document
 base_url <- function() {
   "https://api.polygon.io"
 }
