@@ -65,6 +65,9 @@ next_req <- function(resp, req) {
     httr2::req_url(url = next_url)
 }
 
+# TODO: update documentation to reflect that ticker can be stock, option,
+# indices, forex and crypto.
+
 #' Get aggregate bars for a stock over a time period
 #'
 #' Use the aggregates API to get aggregate bars for a particular stock over a
@@ -125,6 +128,13 @@ aggregates <- function(ticker,
     httr2::resps_data(\(resp) tidy_aggregates(resp))
 }
 
+# TODO: grouped_daily can be called for stocks, forex and crypto. So I can make
+# a *_daily function for each, and then add a market parameter, to
+# grouped_daily, where the user can specify one of the three.
+
+# TODO: update documentation to reflect that grouped_daily can be called for
+# stocks, forex and crypto.
+
 #' Get the daily open, high, low, and close on a particular date
 #'
 #' Get the daily open, high, low, and close (OHLC) for the entire
@@ -156,6 +166,11 @@ grouped_daily <- function(date,
     httr2::resps_data(\(resp) tidy_grouped_daily(resp))
 }
 
+
+# TODO: update documentation to reflect that ticker can be stock, option,
+# indices and crypto.
+
+
 #' Get the open, close and after-hours prices of a stock on a particular date.
 #'
 #' @inheritParams aggregates
@@ -184,6 +199,8 @@ open_close <- function(ticker,
 # TODO: Need to check what the API call returns on a Sunday. Is it the Friday
 # close value, or something else?
 
+# TODO: update documentation to reflect that ticker can be stock, option,
+# indices, forex and crypto.
 
 #' Get the previous day's open, high, low, and close (OHLC) for a stock.
 #'
