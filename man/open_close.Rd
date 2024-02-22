@@ -2,7 +2,7 @@
 % Please edit documentation in R/polygon.R
 \name{open_close}
 \alias{open_close}
-\title{Get the open, close and after-hours prices of a stock on a particular date.}
+\title{Get the open and closing prices of an asset}
 \usage{
 open_close(
   ticker,
@@ -13,8 +13,9 @@ open_close(
 )
 }
 \arguments{
-\item{ticker}{Specify a case-sensitive ticker symbol. For example, "AAPL"
-represents Apple Inc.}
+\item{ticker}{A string containing the ticker code for an asset (stock,
+option, index, etc.). See \code{\link{ticker_type}} for more details on formatting
+ticker codes.}
 
 \item{date}{Either a date with the format "YYYY-MM-DD" or a millisecond
 timestamp.}
@@ -32,7 +33,7 @@ rate_limit = \code{Inf}.}
 A tibble containing the requested data.
 }
 \description{
-Get the open, close and after-hours prices of a stock on a particular date.
+Get the open, close and after-hours prices of an asset on a particular date.
 }
 \references{
 \insertRef{stocksDocumentation}{polygonR}

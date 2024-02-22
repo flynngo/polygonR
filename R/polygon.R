@@ -65,13 +65,14 @@ next_req <- function(resp, req) {
     httr2::req_url(url = next_url)
 }
 
-#' Get aggregate bars for a stock over a time period
+#' Get aggregate bars for an asset over a time period
 #'
-#' Use the aggregates API to get aggregate bars for a particular stock over a
+#' Use the aggregates API to get aggregate bars for a particular asset over a
 #' given date range in custom time window sizes.
 #'
-#' @param ticker Specify a case-sensitive ticker symbol. For example, "AAPL"
-#'   represents Apple Inc.
+#' @param ticker A string containing the ticker code for an asset (stock,
+#'   option, index, etc.). See [`ticker_type`] for more details on formatting
+#'   ticker codes.
 #' @param from The start of the aggregate time window. Either a date with the
 #'   format "YYYY-MM-DD" or a millisecond timestamp.
 #' @param to The end of the aggregate time window. Either a date with the format
@@ -125,13 +126,17 @@ aggregates <- function(ticker,
     httr2::resps_data(\(resp) tidy_aggregates(resp))
 }
 
-#' Get the daily open, high, low, and close on a particular date
+market_values <- c("stocks", "fx", "forex", "crypto")
+#' Get the daily open, high, low, and close for a market
 #'
-#' Get the daily open, high, low, and close (OHLC) for the entire
-#' stocks/equities markets on a particular date.
+#' Get the daily open, high, low, and close (OHLC) for an entire market on a
+#' particular date.
 #'
 #' @param date Either a date with the format "YYYY-MM-DD" or a millisecond
 #'   timestamp.
+# nolint start
+#' @param market The market to show, possible values are `r dQuote(market_values)`.
+# nolint end
 #' @param include_otc Include OTC securities (default = `FALSE`).
 #' @inheritParams aggregates
 #'
@@ -139,10 +144,36 @@ aggregates <- function(ticker,
 #' @references \insertRef{stocksDocumentation}{polygonR}
 #' @export
 grouped_daily <- function(date,
+                          market = "stocks",
                           include_otc = FALSE,
                           api_key = get_api_key(),
                           adjusted = TRUE,
                           rate_limit = 5) {
+  if (!any(market %in% market_values)) {
+    cli::cli_abort(c(
+      "x" = "market = {.str {market}} is invalid.",
+      "i" = "{.arg market} must be one of {.str  {market_values}}"
+    ))
+  }
+  args <- list(date = date, api_key = api_key, adjusted = adjusted, rate_limit = rate_limit) # nolint
+  if (market == "forex") {
+    market <- "fx"
+  } else if (market == "stocks") {
+    args$include_otc <- include_otc
+  }
+
+  do.call(
+    glue::glue("{market}_daily"),
+    args
+  )
+}
+
+#' @rdname grouped_daily
+stocks_daily <- function(date,
+                         include_otc = FALSE,
+                         api_key = get_api_key(),
+                         adjusted = TRUE,
+                         rate_limit = 5) {
   params <- list(
     adjusted = adjusted,
     include_otc = include_otc
@@ -156,7 +187,43 @@ grouped_daily <- function(date,
     httr2::resps_data(\(resp) tidy_grouped_daily(resp))
 }
 
-#' Get the open, close and after-hours prices of a stock on a particular date.
+#' @rdname grouped_daily
+crypto_daily <- function(date,
+                         api_key = get_api_key(),
+                         adjusted = TRUE,
+                         rate_limit = 5) {
+  params <- list(
+    adjusted = adjusted
+  )
+  query(
+    glue::glue("{base_url()}/v2/aggs/grouped/locale/global/market/crypto/{date}"), # nolint
+    params = params,
+    api_key = api_key,
+    rate_limit = rate_limit
+  ) |>
+    httr2::resps_data(\(resp) tidy_grouped_daily(resp))
+}
+
+#' @rdname grouped_daily
+fx_daily <- function(date,
+                     api_key = get_api_key(),
+                     adjusted = TRUE,
+                     rate_limit = 5) {
+  params <- list(
+    adjusted = adjusted
+  )
+  query(
+    glue::glue("{base_url()}/v2/aggs/grouped/locale/global/market/fx/{date}"),
+    params = params,
+    api_key = api_key,
+    rate_limit = rate_limit
+  ) |>
+    httr2::resps_data(\(resp) tidy_grouped_daily(resp))
+}
+
+#' Get the open and closing prices of an asset
+#'
+#' Get the open, close and after-hours prices of an asset on a particular date.
 #'
 #' @inheritParams aggregates
 #' @inheritParams grouped_daily
@@ -184,8 +251,10 @@ open_close <- function(ticker,
 # TODO: Need to check what the API call returns on a Sunday. Is it the Friday
 # close value, or something else?
 
-
-#' Get the previous day's open, high, low, and close (OHLC) for a stock.
+#' Get the open and closing prices from the previous day
+#'
+#' Get the open, high, low, and close (OHLC) prices of an asset from the
+#' previous day.
 #'
 #' @inheritParams aggregates
 #'
@@ -227,20 +296,21 @@ tidy_aggregates <- function(resp) {
   if (is.null(json[["results"]])) {
     return(NULL)
   }
+  cols_lookup <- c(
+    close = "c",
+    high = "h",
+    low = "l",
+    open = "o",
+    time = "t",
+    volume = "v",
+    volume_weighted = "vw",
+    transactions = "n"
+  )
   dplyr::bind_cols(
     ticker = json[["ticker"]],
     results = dplyr::bind_rows(json[["results"]]),
   ) |>
-    dplyr::rename(
-      close = "c",
-      high = "h",
-      low = "l",
-      open = "o",
-      time = "t",
-      volume = "v",
-      volume_weighted = "vw",
-      transactions = "n"
-    ) |>
+    dplyr::rename(dplyr::any_of(cols_lookup)) |>
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
     )
@@ -292,21 +362,92 @@ tidy_prev_close <- function(resp) {
   if (is.null(json[["results"]])) {
     return(NULL)
   }
+  cols_lookup <- c(
+    ticker = "T",
+    close = "c",
+    high = "h",
+    low = "l",
+    open = "o",
+    time = "t",
+    volume = "v",
+    volume_weighted = "vw",
+    transactions = "n"
+  )
   dplyr::bind_rows(json[["results"]]) |>
-    dplyr::rename(
-      ticker = "T",
-      close = "c",
-      high = "h",
-      low = "l",
-      open = "o",
-      time = "t",
-      volume = "v",
-      volume_weighted = "vw",
-      transactions = "n"
-    ) |>
+    dplyr::rename(dplyr::any_of(cols_lookup)) |>
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
     )
+}
+
+#' @rdname tidy_resp
+tidy_tickers <- function(resp) {
+  json <- httr2::resp_body_json(resp)
+  if (is.null(json[["results"]])) {
+    return(NULL)
+  }
+  dplyr::bind_rows(json[["results"]])
+}
+
+#' Detect market type of a ticker
+#'
+#' Classify a `ticker` as either stock, option, forex, index or crypto based on
+#' it's format.
+#'
+#' Only the ticker prefix is considered when detecting the market type. This
+#' function does not check that `ticker` corresponds to a valid asset, see
+#' Section: *Ticker formats* for more details on correctly formatting ticker
+#' codes.
+#'
+#' # Ticker formats
+#'
+#' Tickers of each type are formatted as follows.
+#'
+#' * **Stock** tickers are simply formatted as standard ticker codes.
+#' E.g.`"AAPL"` for Apple.
+#' * **Option** tickers follow the general format `"O:AAPL211119C00085000"`,
+#' where
+#'    * O: indicates that this is an option ticker,
+#'    * AAPL is the ticker for the underlying stock,
+#'    * 211119 is the expiration date in YYMMDD format,
+#'    * C or P indicates whether the option is a call or put option, and
+#'    * 00085000 is the strike price to three decimal places, in this case $85.
+#' * **Forex** price tickers follow the general format `"C:GBPUSD"`, where
+#'    * C: indicates that this is a forex ticker,
+#'    * GBP is the currency we are exchanging from, in this case GB
+#' pounds, and
+#'    * USD is the currency we are exchanging to, in this case US dollars.
+#' * **Index** tickers follow the general format `"I:NDX"`, where:
+#'    * I: indicates that this is an index ticker,
+#'    * NDX is the the index ticker code, in this case the NASDAQ 100.
+#' * **Crypto** price tickers follow the general format `"X:BTCUSD"`, where
+#'    * X: indicates that this is crypto ticker,
+#'    * BTC is the currency we are exchanging from, in this case bitcoin, and
+#'    * USD is the currency we are exchanging to.
+#'
+#' @param ticker A string containing a ticker code.
+#'
+#' @return One of `"stock"`, `"option"`, `"fx"`, `"index"` and `"crypto"`.
+#'
+#' @seealso [*polygon.io*: How to Read A Stock Options
+#'   Ticker](https://polygon.io/blog/how-to-read-a-stock-options-ticker)
+#' @examples ticker_type("AAL")
+#' @export
+ticker_type <- function(ticker) {
+  tt <- dplyr::case_when(
+    grepl("^C:", ticker) ~ "fx",
+    grepl("^I:", ticker) ~ "index",
+    grepl("^X:", ticker) ~ "crypto",
+    grepl("^O:", ticker) ~ "option",
+    grepl("^[a-zA-Z]+$", ticker) ~ "stock"
+  )
+  if (is.na(tt)) {
+    cli::cli_abort(c(
+      "x" = "ticker = {.str {ticker}} is not a valid ticker.",
+      "i" = "See {.run [ticker_type](?polygonR::ticker_type)} to learn more."
+    ))
+  }
+  tt
 }
 
 base_url <- function() {
