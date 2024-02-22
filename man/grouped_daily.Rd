@@ -2,19 +2,37 @@
 % Please edit documentation in R/polygon.R
 \name{grouped_daily}
 \alias{grouped_daily}
-\title{Get the daily open, high, low, and close on a particular date}
+\alias{stocks_daily}
+\alias{crypto_daily}
+\alias{fx_daily}
+\title{Get the daily open, high, low, and close for a market}
 \usage{
 grouped_daily(
+  date,
+  market = "stocks",
+  include_otc = FALSE,
+  api_key = get_api_key(),
+  adjusted = TRUE,
+  rate_limit = 5
+)
+
+stocks_daily(
   date,
   include_otc = FALSE,
   api_key = get_api_key(),
   adjusted = TRUE,
   rate_limit = 5
 )
+
+crypto_daily(date, api_key = get_api_key(), adjusted = TRUE, rate_limit = 5)
+
+fx_daily(date, api_key = get_api_key(), adjusted = TRUE, rate_limit = 5)
 }
 \arguments{
 \item{date}{Either a date with the format "YYYY-MM-DD" or a millisecond
 timestamp.}
+
+\item{market}{The market to show, possible values are "stocks", "fx", "forex", "crypto".}
 
 \item{include_otc}{Include OTC securities (default = \code{FALSE}).}
 
@@ -31,8 +49,8 @@ rate_limit = \code{Inf}.}
 A tibble containing the requested data.
 }
 \description{
-Get the daily open, high, low, and close (OHLC) for the entire
-stocks/equities markets on a particular date.
+Get the daily open, high, low, and close (OHLC) for an entire market on a
+particular date.
 }
 \references{
 \insertRef{stocksDocumentation}{polygonR}

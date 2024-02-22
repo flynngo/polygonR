@@ -128,20 +128,15 @@ aggregates <- function(ticker,
     httr2::resps_data(\(resp) tidy_aggregates(resp))
 }
 
-# TODO: grouped_daily can be called for stocks, forex and crypto. So I can make
-# a *_daily function for each, and then add a market parameter, to
-# grouped_daily, where the user can specify one of the three.
-
-# TODO: update documentation to reflect that grouped_daily can be called for
-# stocks, forex and crypto.
-
-#' Get the daily open, high, low, and close on a particular date
+market_values <- c("stocks", "fx", "forex", "crypto")
+#' Get the daily open, high, low, and close for a market
 #'
-#' Get the daily open, high, low, and close (OHLC) for the entire
-#' stocks/equities markets on a particular date.
+#' Get the daily open, high, low, and close (OHLC) for an entire market on a
+#' particular date.
 #'
 #' @param date Either a date with the format "YYYY-MM-DD" or a millisecond
 #'   timestamp.
+#' @param market The market to show, possible values are `r dQuote(market_values)`.
 #' @param include_otc Include OTC securities (default = `FALSE`).
 #' @inheritParams aggregates
 #'
@@ -149,10 +144,36 @@ aggregates <- function(ticker,
 #' @references \insertRef{stocksDocumentation}{polygonR}
 #' @export
 grouped_daily <- function(date,
+                          market = "stocks",
                           include_otc = FALSE,
                           api_key = get_api_key(),
                           adjusted = TRUE,
                           rate_limit = 5) {
+  if (!any(market %in% market_values)) {
+    cli::cli_abort(c(
+      "x" = "{.arg market} = {.str {market}} is invalid.",
+      "i" = "{.arg market} must be one of {.str  {market_values}}"
+    ))
+  }
+  args <- list(date = date, api_key = api_key, adjusted = adjusted, rate_limit = rate_limit) # nolint
+  if (market == "forex") {
+    market <- "fx"
+  } else if (market == "stocks") {
+    args$include_otc <- include_otc
+  }
+
+  do.call(
+    glue::glue("{market}_daily"),
+    args
+  )
+}
+
+#' @rdname grouped_daily
+stocks_daily <- function(date,
+                         include_otc = FALSE,
+                         api_key = get_api_key(),
+                         adjusted = TRUE,
+                         rate_limit = 5) {
   params <- list(
     adjusted = adjusted,
     include_otc = include_otc
@@ -166,6 +187,39 @@ grouped_daily <- function(date,
     httr2::resps_data(\(resp) tidy_grouped_daily(resp))
 }
 
+#' @rdname grouped_daily
+crypto_daily <- function(date,
+                         api_key = get_api_key(),
+                         adjusted = TRUE,
+                         rate_limit = 5) {
+  params <- list(
+    adjusted = adjusted
+    )
+  query(
+    glue::glue("{base_url()}/v2/aggs/grouped/locale/global/market/crypto/{date}"),
+    params = params,
+    api_key = api_key,
+    rate_limit = rate_limit
+  ) |>
+    httr2::resps_data(\(resp) tidy_grouped_daily(resp))
+}
+
+#' @rdname grouped_daily
+fx_daily <- function(date,
+                     api_key = get_api_key(),
+                     adjusted = TRUE,
+                     rate_limit = 5) {
+  params <- list(
+    adjusted = adjusted
+  )
+  query(
+    glue::glue("{base_url()}/v2/aggs/grouped/locale/global/market/fx/{date}"),
+    params = params,
+    api_key = api_key,
+    rate_limit = rate_limit
+  ) |>
+    httr2::resps_data(\(resp) tidy_grouped_daily(resp))
+}
 
 # TODO: update documentation to reflect that ticker can be stock, option,
 # indices and crypto.
@@ -244,20 +298,21 @@ tidy_aggregates <- function(resp) {
   if (is.null(json[["results"]])) {
     return(NULL)
   }
+  cols_lookup <- c(
+    close = "c",
+    high = "h",
+    low = "l",
+    open = "o",
+    time = "t",
+    volume = "v",
+    volume_weighted = "vw",
+    transactions = "n"
+  )
   dplyr::bind_cols(
     ticker = json[["ticker"]],
     results = dplyr::bind_rows(json[["results"]]),
   ) |>
-    dplyr::rename(
-      close = "c",
-      high = "h",
-      low = "l",
-      open = "o",
-      time = "t",
-      volume = "v",
-      volume_weighted = "vw",
-      transactions = "n"
-    ) |>
+    dplyr::rename(any_of(cols_lookup)) |>
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
     )
@@ -309,18 +364,19 @@ tidy_prev_close <- function(resp) {
   if (is.null(json[["results"]])) {
     return(NULL)
   }
+  cols_lookup <- c(
+    ticker = "T",
+    close = "c",
+    high = "h",
+    low = "l",
+    open = "o",
+    time = "t",
+    volume = "v",
+    volume_weighted = "vw",
+    transactions = "n"
+  )
   dplyr::bind_rows(json[["results"]]) |>
-    dplyr::rename(
-      ticker = "T",
-      close = "c",
-      high = "h",
-      low = "l",
-      open = "o",
-      time = "t",
-      volume = "v",
-      volume_weighted = "vw",
-      transactions = "n"
-    ) |>
+    dplyr::rename(any_of(cols_lookup)) |>
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
     )
@@ -336,12 +392,11 @@ tidy_tickers <- function(resp) {
 }
 
 # Detect market type (for internal use)
-# TODO: document
 market_type <- function(ticker) {
   dplyr::case_when(
-    str_detect(ticker, "^C:") ~ "fx",
-    str_detect(ticker, "^I:") ~ "indices",
-    str_detect(ticker, "^X:") ~ "crypto",
+    stringr::str_detect(ticker, "^C:") ~ "fx",
+    stringr::str_detect(ticker, "^I:") ~ "indices",
+    stringr::str_detect(ticker, "^X:") ~ "crypto",
     .default = "stocks"
   )
 }

@@ -101,24 +101,16 @@ test_that("Stock aggregates queries are successful", {
 
 test_that("Options aggregates queries are successful", {
   expect_no_error(
-    aapl <- aggregates(
-      ticker = "O:AAPL251219C00650000", multiplier = 1, timespan = "day",
+    actual <- aggregates(
+      ticker = "O:SPY251219C00650000", multiplier = 1, timespan = "day",
       from = "2024-01-09", to = "2024-02-09", limit = 120
     )
   )
   expect_identical(
-    colnames(aapl),
+    colnames(actual),
     c("ticker", "volume", "volume_weighted", "open", "close", "high", "low", "time", "transactions") # nolint
   )
-  expect_no_error(
-    amzn <- aggregates(
-      ticker = "AMZN251219C00650000", multiplier = 1, timespan = "day",
-      from = "2024-02-08", to = "2024-02-14", limit = 3
-    )
-  )
-  expect_identical(nrow(amzn), 5L)
 })
-
 
 test_that("Indices aggregates queries are successful", {
   expect_no_error(
@@ -127,11 +119,9 @@ test_that("Indices aggregates queries are successful", {
       from = "2024-01-09", to = "2024-02-09", limit = 120
     )
   )
-  # Column names are different for indices so this test will need to be update
-  # to reflect that.
   expect_identical(
     colnames(ndx),
-    c("ticker", "volume", "volume_weighted", "open", "close", "high", "low", "time", "transactions") # nolint
+    c("ticker", "open", "close", "high", "low", "time")
   )
 })
 
@@ -164,47 +154,63 @@ test_that("Crypto aggregates queries are successful", {
 })
 
 test_that("Stocks grouped daily queries are successful", {
-  # TODO: add in actual price check tests for gd_stocks1 and gd_stocks2, so I know that
-  # they're returning results
   expect_no_error(
     gd_stocks1 <- grouped_daily(date = "2023-01-09", market = "stocks")
   )
   expect_no_error(
     gd_stocks2 <- stocks_daily(date = "2023-01-09")
   )
-
-  # TODO: update below functions to stocks_daily (when the above ones work)
+  expect_identical(gd_stocks1, gd_stocks2)
+  expect_identical(
+    colnames(gd_stocks1),
+    c(
+      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
+      "time", "transactions"
+    )
+  )
   expect_true(
     any(
-      "ALIZF" == grouped_daily(date = "2023-01-09", market = "stocks", include_otc = TRUE)$ticker
+      "ALIZF" == stocks_daily(date = "2023-01-09", include_otc = TRUE)$ticker
     )
   )
   expect_false(
     any(
-      "ALIZF" == grouped_daily(date = "2023-01-09", market = "stocks", include_otc = FALSE)$ticker
+      "ALIZF" == stocks_daily(date = "2023-01-09", include_otc = FALSE)$ticker
     )
   )
 })
 
 test_that("Forex grouped daily queries are successful", {
-  # TODO: add in actual price or column check tests for gd_fx1 and gd_fx2, so I know that
-  # they're returning results
   expect_no_error(
     gd_fx1 <- grouped_daily(date = "2023-01-09", market = "fx")
   )
   expect_no_error(
     gd_fx2 <- fx_daily(date = "2023-01-09")
   )
+  expect_equal(gd_fx1, gd_fx2)
+  expect_identical(
+    colnames(gd_fx1),
+    c(
+      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
+      "time", "transactions"
+    )
+  )
 })
 
 test_that("Crypto grouped daily queries are successful", {
-  # TODO: add in actual price or column check tests for gd_crypto1 and gd_crypto2, so I
-  # know that they're returning results
   expect_no_error(
     gd_crypto1 <- grouped_daily(date = "2023-01-09", market = "crypto")
   )
   expect_no_error(
-    gd_crypto2 <- fx_daily(date = "2023-01-09")
+    gd_crypto2 <- crypto_daily(date = "2023-01-09")
+  )
+  expect_equal(gd_crypto1, gd_crypto2)
+  expect_identical(
+    colnames(gd_crypto1),
+    c(
+      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
+      "time", "transactions"
+    )
   )
 })
 
@@ -238,74 +244,45 @@ test_that("Stocks open/close queries are successful", {
   expect_identical(alizf[, "otc"], alizf_expected["otc"])
 })
 
-# TODO: update options contracts to be more sensible.
 test_that("Options open/close queries are successful", {
-  msft <- open_close(ticker = "MSFT251219C00650000", date = "2024-02-12")
-  alizf <- open_close(ticker = "ALIZF251219C00650000", date = "2024-02-01")
-
-  # TODO: update expected prices to be correct
-  msft_expected <- tibble::tibble(
-    open = 420.56,
-    high = 420.74,
-    low = 414.75,
-    close = 415.26,
-    volume = 21202920
+  actual <- open_close(ticker = "O:SPY251219C00650000", date = "2024-02-12")
+  expected <- tibble::tibble(
+    open = 4.74,
+    high = 5.0,
+    low = 4.74,
+    close = 5.0
   )
-  alizf_expected <- tibble::tibble(
-    open = 266.00,
-    high = 266.00,
-    low = 262.00,
-    close = 262.08,
-    volume = 100,
-    otc = TRUE
-  )
-
-  # Different sites list different trade volumes.
-  tol <- c(open = .005, high = .005, low = .005, close = .005, volume = 100)
-
-  for (i in names(tol)) {
-    expect_lte(abs(msft[, i] - msft_expected[i]), tol[i])
-    expect_lte(abs(alizf[, i] - alizf_expected[i]), tol[i])
+  tol <- .005
+  for (i in names(expected)) {
+    expect_lte(abs(actual[, i] - expected[, i]), .005)
   }
-  expect_identical(alizf[, "otc"], alizf_expected["otc"])
 })
 
 test_that("Indices open/close queries are successful", {
   actual <- open_close(ticker = "I:NDX", date = "2024-02-12")
-# TODO: update expected prices to be correct
   expected <- tibble::tibble(
-    open = 420.56,
-    high = 420.74,
-    low = 414.75,
-    close = 415.26,
-    volume = 21202920
+    open = 17942.28,
+    high = 18041.45,
+    low = 17859.66,
+    close = 17882.66
   )
-  # Different sites list different trade volumes.
-  tol <- c(open = .005, high = .005, low = .005, close = .005, volume = 100)
-
-  for (i in names(tol)) {
-    expect_lte(abs(actual[, i] - expected[i]), tol[i])
+  tol <- .005
+  for (i in names(expected)) {
+    expect_lte(abs(actual[, i] - expected[, i]), tol)
   }
 })
 
 test_that("Crypto open/close queries are successful", {
-  # TODO: polygon api takes from and to. I can probably convert to a ticker like
-  # this for consistency, but I should possibly also have a from and to option.
   actual <- open_close(ticker = "X:BTCUSD", date = "2024-02-12")
-
-  # TODO: update prices to be correct.
   expected <- tibble::tibble(
-    open = 420.56,
-    high = 420.74,
-    low = 414.75,
-    close = 415.26,
-    volume = 21202920
+    open = 48321.14,
+    high = 50363.42,
+    low = 47642,
+    close = 49941.81
   )
-  # Different sites list different trade volumes.
-  tol <- c(open = .005, high = .005, low = .005, close = .005, volume = 100)
-
-  for (i in names(tol)) {
-    expect_lte(abs(actual[, i] - expected[i]), tol[i])
+  tol <- .005
+  for (i in names(expected)) {
+    expect_lte(abs(actual[, i] - expected[, i]), tol)
   }
 })
 
@@ -332,26 +309,15 @@ test_that("Stocks previous close queries are successful", {
   )
 })
 
-# TODO: update options contracts to be more sensible.
 test_that("Options previous close queries are successful", {
   expect_no_error(
-    nflx <- prev_close("NFLX251219C00650000")
-  )
-  expect_no_error(
-    danoy <- prev_close("DANOY251219C00650000")
+    actual <- prev_close("O:SPY251219C00650000")
   )
   expect_identical(
-    colnames(nflx),
+    colnames(actual),
     c(
       "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
       "time", "transactions"
-    )
-  )
-  expect_identical(
-    colnames(danoy),
-    c(
-      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
-      "time", "transactions", "otc"
     )
   )
 })
@@ -360,14 +326,9 @@ test_that("Indices previous close queries are successful", {
   expect_no_error(
     actual <- prev_close("I:NDX")
   )
-  # TODO: indices results column names are different, so this test will require
-  # updating
   expect_identical(
     colnames(actual),
-    c(
-      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
-      "time", "transactions"
-    )
+    c("ticker", "open", "close", "high", "low", "time")
   )
 })
 
@@ -424,6 +385,14 @@ test_that("Ticker market detection", {
     "I:NQGIHEIEUR", "indices", "indices"
     )
   expect_identical(
-    map_chr(ticker_markets$ticker, ~market_type(.x)),
+    purrr::map_chr(ticker_markets$ticker, ~market_type(.x)),
     ticker_markets$expected)
+})
+
+test_that("Grouped daily throws error when invalid market is supplied.", {
+  expect_error(
+    grouped_daily(date = "2023-01-09", market = "invalid"),
+    '`market` = "invalid" is invalid.',
+    fixed = TRUE
+  )
 })
