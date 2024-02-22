@@ -65,16 +65,14 @@ next_req <- function(resp, req) {
     httr2::req_url(url = next_url)
 }
 
-# TODO: update documentation to reflect that ticker can be stock, option,
-# indices, forex and crypto.
-
-#' Get aggregate bars for a stock over a time period
+#' Get aggregate bars for an asset over a time period
 #'
-#' Use the aggregates API to get aggregate bars for a particular stock over a
+#' Use the aggregates API to get aggregate bars for a particular asset over a
 #' given date range in custom time window sizes.
 #'
-#' @param ticker Specify a case-sensitive ticker symbol. For example, "AAPL"
-#'   represents Apple Inc.
+#' @param ticker A string containing the ticker code for an asset (stock,
+#'   option, index, etc.). See [`ticker_type`] for more details on formatting
+#'   ticker codes.
 #' @param from The start of the aggregate time window. Either a date with the
 #'   format "YYYY-MM-DD" or a millisecond timestamp.
 #' @param to The end of the aggregate time window. Either a date with the format
@@ -223,11 +221,9 @@ fx_daily <- function(date,
     httr2::resps_data(\(resp) tidy_grouped_daily(resp))
 }
 
-# TODO: update documentation to reflect that ticker can be stock, option,
-# indices and crypto.
-
-
-#' Get the open, close and after-hours prices of a stock on a particular date.
+#' Get the open and closing prices of an asset
+#'
+#' Get the open, close and after-hours prices of an asset on a particular date.
 #'
 #' @inheritParams aggregates
 #' @inheritParams grouped_daily
@@ -255,10 +251,10 @@ open_close <- function(ticker,
 # TODO: Need to check what the API call returns on a Sunday. Is it the Friday
 # close value, or something else?
 
-# TODO: update documentation to reflect that ticker can be stock, option,
-# indices, forex and crypto.
-
-#' Get the previous day's open, high, low, and close (OHLC) for a stock.
+#' Get the open and closing prices from the previous day
+#'
+#' Get the open, high, low, and close (OHLC) prices of an asset from the
+#' previous day.
 #'
 #' @inheritParams aggregates
 #'
