@@ -153,7 +153,7 @@ grouped_daily <- function(date,
                           rate_limit = 5) {
   if (!any(market %in% market_values)) {
     cli::cli_abort(c(
-      "x" = "{.arg market} = {.str {market}} is invalid.",
+      "x" = "market = {.str {market}} is invalid.",
       "i" = "{.arg market} must be one of {.str  {market_values}}"
     ))
   }
@@ -393,18 +393,66 @@ tidy_tickers <- function(resp) {
   dplyr::bind_rows(json[["results"]])
 }
 
-# Detect market type (for internal use)
-market_type <- function(ticker) {
-  dplyr::case_when(
+#' Detect market type of a ticker
+#'
+#' Classify a `ticker` as either stock, option, forex, index or crypto based on
+#' it's format.
+#'
+#' Only the ticker prefix is considered when detecting the market type. This
+#' function does not check that `ticker` corresponds to a valid asset, see
+#' Section: *Ticker formats* for more details on correctly formatting ticker
+#' codes.
+#'
+#' # Ticker formats
+#'
+#' Tickers of each type are formatted as follows.
+#'
+#' * **Stock** tickers are simply formatted as standard ticker codes. E.g. `"AAPL"`
+#' for Apple.
+#' * **Option** tickers follow the general format `"O:AAPL211119C00085000"`, where
+#'    * O: indicates that this is an option ticker,
+#'    * AAPL is the ticker for the underlying stock,
+#'    * 211119 is the expiration date in YYMMDD format,
+#'    * C or P indicates whether the option is a call or put option, and
+#'    * 00085000 is the strike price to three decimal places, in this case $85.
+#' * **Forex** price tickers follow the general format `"C:GBPUSD"`, where
+#'    * C: indicates that this is a forex ticker,
+#'    * GBP is the currency we are exchanging from, in this case GB
+#' pounds, and
+#'    * USD is the currency we are exchanging to, in this case US dollars.
+#' * **Index** tickers follow the general format `"I:NDX"`, where:
+#'    * I: indicates that this is an index ticker,
+#'    * NDX is the the index ticker code, in this case the NASDAQ 100.
+#' * **Crypto** price tickers follow the general format `"X:BTCUSD"`, where
+#'    * X: indicates that this is crypto ticker,
+#'    * BTC is the currency we are exchanging from, in this case bitcoin, and
+#'    * USD is the currency we are exchanging to.
+#'
+#' @param ticker A string containing a ticker code.
+#'
+#' @return One of `"stock"`, `"option"`, `"fx"`, `"index"` and `"crypto"`.
+#'
+#' @seealso [*polygon.io*: How to Read A Stock Options
+#'   Ticker](https://polygon.io/blog/how-to-read-a-stock-options-ticker)
+#' @examples ticker_type("AAL")
+#' @export
+ticker_type <- function(ticker) {
+  tt <- dplyr::case_when(
     stringr::str_detect(ticker, "^C:") ~ "fx",
-    stringr::str_detect(ticker, "^I:") ~ "indices",
+    stringr::str_detect(ticker, "^I:") ~ "index",
     stringr::str_detect(ticker, "^X:") ~ "crypto",
-    .default = "stocks"
+    stringr::str_detect(ticker, "^O:") ~ "option",
+    stringr::str_detect(ticker, "^[a-zA-Z]+$") ~ "stock"
   )
+  if (is.na(tt)) {
+    cli::cli_abort(c(
+      "x" = "ticker = {.str {ticker}} is not a valid ticker.",
+      "i" = "See {.run [ticker_type](?polygonR::ticker_type)} to learn more."
+    ))
+  }
+  tt
 }
 
-
-# TODO: document
 base_url <- function() {
   "https://api.polygon.io"
 }

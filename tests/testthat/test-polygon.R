@@ -373,28 +373,27 @@ test_that("Basic plan rate limit isn't hit", {
 
 test_that("Ticker market detection", {
   ticker_markets <- tibble::tribble(
-    ~ticker, ~markets, ~expected,
-    "X:BTCUSD", "crypto", "crypto",
-    "X:ETHAUD", "crypto", "crypto",
-    "C:ZARNOK", "fx", "fx",
-    "C:GBPUSD", "fx", "fx",
-    "AAL", "stocks", "stocks",
-    "ESGV", "stocks", "stocks",
-    "HIZOF", "otc", "stocks",
-    "DANOY", "otc", "stocks",
-    "I:DJITLS", "indices", "indices",
-    "I:NQGIHEIEUR", "indices", "indices"
+    ~ticker, ~expected,
+    "X:BTCUSD", "crypto",
+    "C:GBPUSD", "fx",
+    "AAL", "stock",
+    "I:NDX", "index",
+    "O:SPY251219C00650000", "option",
   )
   expect_identical(
-    purrr::map_chr(ticker_markets$ticker, ~ market_type(.x)),
+    purrr::map_chr(ticker_markets$ticker, ~ ticker_type(.x)),
     ticker_markets$expected
+  )
+  expect_error(
+    ticker_type("invalid:format"),
+    'ticker = "invalid:format" is not a valid ticker.'
   )
 })
 
 test_that("Grouped daily throws error when invalid market is supplied.", {
   expect_error(
     grouped_daily(date = "2023-01-09", market = "invalid"),
-    '`market` = "invalid" is invalid.',
+    'market = "invalid" is invalid.',
     fixed = TRUE
   )
 })
