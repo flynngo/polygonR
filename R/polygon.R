@@ -403,9 +403,10 @@ tidy_tickers <- function(resp) {
 #'
 #' Tickers of each type are formatted as follows.
 #'
-#' * **Stock** tickers are simply formatted as standard ticker codes. E.g. `"AAPL"`
-#' for Apple.
-#' * **Option** tickers follow the general format `"O:AAPL211119C00085000"`, where
+#' * **Stock** tickers are simply formatted as standard ticker codes.
+#' E.g.`"AAPL"` for Apple.
+#' * **Option** tickers follow the general format `"O:AAPL211119C00085000"`,
+#' where
 #'    * O: indicates that this is an option ticker,
 #'    * AAPL is the ticker for the underlying stock,
 #'    * 211119 is the expiration date in YYMMDD format,

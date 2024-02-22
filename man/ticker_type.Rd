@@ -25,9 +25,10 @@ codes.
 \section{Ticker formats}{
 Tickers of each type are formatted as follows.
 \itemize{
-\item \strong{Stock} tickers are simply formatted as standard ticker codes. E.g. \code{"AAPL"}
-for Apple.
-\item \strong{Option} tickers follow the general format \code{"O:AAPL211119C00085000"}, where
+\item \strong{Stock} tickers are simply formatted as standard ticker codes.
+E.g.\code{"AAPL"} for Apple.
+\item \strong{Option} tickers follow the general format \code{"O:AAPL211119C00085000"},
+where
 \itemize{
 \item O: indicates that this is an option ticker,
 \item AAPL is the ticker for the underlying stock,

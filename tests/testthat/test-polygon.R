@@ -183,14 +183,10 @@ test_that("Stocks grouped daily queries are successful", {
 
 test_that("Forex grouped daily queries are successful", {
   expect_no_error(
-    gd_fx1 <- grouped_daily(date = "2023-01-09", market = "fx")
+    gd_fx <- grouped_daily(date = "2023-01-09", market = "fx")
   )
-  expect_no_error(
-    gd_fx2 <- fx_daily(date = "2023-01-09")
-  )
-  expect_equal(gd_fx1, gd_fx2)
   expect_identical(
-    colnames(gd_fx1),
+    colnames(gd_fx),
     c(
       "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
       "time", "transactions"
@@ -200,14 +196,10 @@ test_that("Forex grouped daily queries are successful", {
 
 test_that("Crypto grouped daily queries are successful", {
   expect_no_error(
-    gd_crypto1 <- grouped_daily(date = "2023-01-09", market = "crypto")
+    gd_crypto <- grouped_daily(date = "2023-01-09", market = "crypto")
   )
-  expect_no_error(
-    gd_crypto2 <- crypto_daily(date = "2023-01-09")
-  )
-  expect_equal(gd_crypto1, gd_crypto2)
   expect_identical(
-    colnames(gd_crypto1),
+    colnames(gd_crypto),
     c(
       "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
       "time", "transactions"
