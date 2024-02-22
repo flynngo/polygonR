@@ -136,7 +136,9 @@ market_values <- c("stocks", "fx", "forex", "crypto")
 #'
 #' @param date Either a date with the format "YYYY-MM-DD" or a millisecond
 #'   timestamp.
+# nolint start
 #' @param market The market to show, possible values are `r dQuote(market_values)`.
+# nolint end
 #' @param include_otc Include OTC securities (default = `FALSE`).
 #' @inheritParams aggregates
 #'
@@ -194,9 +196,9 @@ crypto_daily <- function(date,
                          rate_limit = 5) {
   params <- list(
     adjusted = adjusted
-    )
+  )
   query(
-    glue::glue("{base_url()}/v2/aggs/grouped/locale/global/market/crypto/{date}"),
+    glue::glue("{base_url()}/v2/aggs/grouped/locale/global/market/crypto/{date}"), # nolint
     params = params,
     api_key = api_key,
     rate_limit = rate_limit

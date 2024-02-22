@@ -1,5 +1,5 @@
 test_that("Error handling", {
-  params <-  list(
+  params <- list(
     adjusted = TRUE,
     sort = "asc",
     limit = 1
@@ -33,7 +33,8 @@ test_that("Error handling", {
 test_that("API key helper works", {
   new_key <- "ABC123"
   withr::with_envvar(
-    new = c("POLYGON_KEY" = "NULL"), {
+    new = c("POLYGON_KEY" = "NULL"),
+    {
       expect_message(set_api_key(new_key), "POLYGON_KEY set")
       expect_identical(Sys.getenv("POLYGON_KEY"), new_key)
     }
@@ -383,10 +384,11 @@ test_that("Ticker market detection", {
     "DANOY", "otc", "stocks",
     "I:DJITLS", "indices", "indices",
     "I:NQGIHEIEUR", "indices", "indices"
-    )
+  )
   expect_identical(
-    purrr::map_chr(ticker_markets$ticker, ~market_type(.x)),
-    ticker_markets$expected)
+    purrr::map_chr(ticker_markets$ticker, ~ market_type(.x)),
+    ticker_markets$expected
+  )
 })
 
 test_that("Grouped daily throws error when invalid market is supplied.", {
