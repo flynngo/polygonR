@@ -310,7 +310,7 @@ tidy_aggregates <- function(resp) {
     ticker = json[["ticker"]],
     results = dplyr::bind_rows(json[["results"]]),
   ) |>
-    dplyr::rename(any_of(cols_lookup)) |>
+    dplyr::rename(dplyr::any_of(cols_lookup)) |>
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
     )
@@ -374,7 +374,7 @@ tidy_prev_close <- function(resp) {
     transactions = "n"
   )
   dplyr::bind_rows(json[["results"]]) |>
-    dplyr::rename(any_of(cols_lookup)) |>
+    dplyr::rename(dplyr::any_of(cols_lookup)) |>
     dplyr::mutate(
       time = lubridate::as_datetime(.data$time / 1000)
     )
@@ -435,11 +435,11 @@ tidy_tickers <- function(resp) {
 #' @export
 ticker_type <- function(ticker) {
   tt <- dplyr::case_when(
-    stringr::str_detect(ticker, "^C:") ~ "fx",
-    stringr::str_detect(ticker, "^I:") ~ "index",
-    stringr::str_detect(ticker, "^X:") ~ "crypto",
-    stringr::str_detect(ticker, "^O:") ~ "option",
-    stringr::str_detect(ticker, "^[a-zA-Z]+$") ~ "stock"
+    grepl("^C:", ticker) ~ "fx",
+    grepl("^I:", ticker) ~ "index",
+    grepl("^X:", ticker) ~ "crypto",
+    grepl("^O:", ticker) ~ "option",
+    grepl("^[a-zA-Z]+$", ticker) ~ "stock"
   )
   if (is.na(tt)) {
     cli::cli_abort(c(

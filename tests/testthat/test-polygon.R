@@ -373,7 +373,12 @@ test_that("Ticker market detection", {
     "O:SPY251219C00650000", "option",
   )
   expect_identical(
-    purrr::map_chr(ticker_markets$ticker, ~ ticker_type(.x)),
+    unlist(
+      lapply(
+        ticker_markets$ticker,
+        \(ticker) ticker_type(ticker)
+      )
+    ),
     ticker_markets$expected
   )
   expect_error(
