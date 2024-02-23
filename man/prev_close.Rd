@@ -2,13 +2,14 @@
 % Please edit documentation in R/polygon.R
 \name{prev_close}
 \alias{prev_close}
-\title{Get the previous day's open, high, low, and close (OHLC) for a stock.}
+\title{Get the open and closing prices from the previous day}
 \usage{
 prev_close(ticker, adjusted = TRUE, api_key = get_api_key(), rate_limit = 5)
 }
 \arguments{
-\item{ticker}{Specify a case-sensitive ticker symbol. For example, "AAPL"
-represents Apple Inc.}
+\item{ticker}{A string containing the ticker code for an asset (stock,
+option, index, etc.). See \code{\link{ticker_type}} for more details on formatting
+ticker codes.}
 
 \item{adjusted}{Whether or not the results are adjusted for stock splits.}
 
@@ -23,7 +24,8 @@ rate_limit = \code{Inf}.}
 A tibble containing the requested data.
 }
 \description{
-Get the previous day's open, high, low, and close (OHLC) for a stock.
+Get the open, high, low, and close (OHLC) prices of an asset from the
+previous day.
 }
 \references{
 \insertRef{stocksDocumentation}{polygonR}
