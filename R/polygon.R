@@ -169,6 +169,7 @@ grouped_daily <- function(date,
 }
 
 #' @rdname grouped_daily
+#' @export
 stocks_daily <- function(date,
                          include_otc = FALSE,
                          api_key = get_api_key(),
@@ -188,6 +189,7 @@ stocks_daily <- function(date,
 }
 
 #' @rdname grouped_daily
+#' @export
 crypto_daily <- function(date,
                          api_key = get_api_key(),
                          adjusted = TRUE,
@@ -205,6 +207,7 @@ crypto_daily <- function(date,
 }
 
 #' @rdname grouped_daily
+#' @export
 fx_daily <- function(date,
                      api_key = get_api_key(),
                      adjusted = TRUE,
