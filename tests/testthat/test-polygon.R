@@ -351,6 +351,28 @@ test_that("Crypto previous close queries are successful", {
   )
 })
 
+test_that("Tickers queries work", {
+  expect_no_error(
+    aapl <- tickers(
+      "AAPL", type = "CS", active = TRUE, market = "stocks", cik = "0000320193",
+      cusip = "037833100", exchange = "XNAS", date = "2024-02-01"
+    )
+  )
+  expect_identical(aapl$name, "Apple Inc.")
+
+  expect_no_error(
+    gbp <- tickers(market = "fx", search = "sterling")
+  )
+  expect_true(
+    all(sapply(gbp$ticker, \(t) grepl("GBP", t)))
+  )
+
+  expect_no_error(
+    empty <- tickers(search = "match_nothing_7835y3")
+  )
+  expect_identical(empty, tibble::tibble())
+})
+
 test_that("Basic plan rate limit isn't hit", {
   skip("Is tested as a side-effect of previous tests.")
   expect_no_error({

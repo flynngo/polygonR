@@ -169,6 +169,7 @@ grouped_daily <- function(date,
 }
 
 #' @rdname grouped_daily
+#' @export
 stocks_daily <- function(date,
                          include_otc = FALSE,
                          api_key = get_api_key(),
@@ -188,6 +189,7 @@ stocks_daily <- function(date,
 }
 
 #' @rdname grouped_daily
+#' @export
 crypto_daily <- function(date,
                          api_key = get_api_key(),
                          adjusted = TRUE,
@@ -205,6 +207,7 @@ crypto_daily <- function(date,
 }
 
 #' @rdname grouped_daily
+#' @export
 fx_daily <- function(date,
                      api_key = get_api_key(),
                      adjusted = TRUE,
@@ -277,6 +280,56 @@ prev_close <- function(ticker,
     httr2::resps_data(\(resp) tidy_prev_close(resp))
 }
 
+#' Query all ticker symbols which are supported by Polygon.io
+#'
+#' Query all ticker symbols which are supported by Polygon.io. This API
+#' currently includes Stocks/Equities, Indices, Forex, and Crypto.
+#'
+#' @note Warning: Default arguments will return all ticker symbols, which will
+#'   require a large number of queries, run slowly due to the `rate_limit`, and
+#'   hit the default `max_reqs` value. Basic plan users should specify some
+#'   search parameters to drastically reduce the number of queries and hence the
+#'   time to complete the request.
+#'
+#' @param type Specify the type of the tickers. Defaults to querying all types.
+#' @param market Filter by market type, possible values are
+#' `r dQuote(c(market_values, "otc"))`.
+#' By default all markets are included.
+#' @param exchange Specify the primary exchange of the asset in the ISO code
+#'   format. Find more information about the ISO codes [at the ISO org
+#'   website](https://www.cusip.com/identifiers.html#/CUSIP). Defaults to empty
+#'   string which queries all exchanges.
+#' @param cusip Specify the CUSIP code of the asset you want to search for. Find
+#'   more information about CUSIP codes [at their
+#'   website](https://www.cusip.com/identifiers.html#/CUSIP). Defaults to empty
+#'   string which queries all CUSIPs.
+#' @param cik Specify the CIK of the asset you want to search for. Find more
+#'   information about CIK codes [at their
+#'   website](https://www.sec.gov/edgar/searchedgar/cik). Defaults to empty
+#'   string which queries all CIKs.
+#' @param date Retrieve tickers available on the date "YYYY-MM-DD".
+#' @param search Search for terms within the ticker and/or company name.
+#' @param active Specify if the tickers returned should be actively traded on
+#'   the queried date. Default is `TRUE`.
+#' @inheritParams aggregates
+#'
+#' @return A tibble that contains all matching tickers.
+#' @export
+tickers <- function(ticker = NULL, type = NULL, market = NULL, exchange = NULL,
+                    cusip = NULL, cik = NULL, date = NULL, search = NULL,
+                    active = NULL, limit = 1000, api_key = get_api_key(),
+                    rate_limit = 5, max_reqs = 5) {
+  params <- as.list(rlang::call_match(defaults = TRUE))[-1]
+  params <- params[!(names(params) %in% c("api_key", "rate_limit", "max_reqs"))]
+  query(
+    glue::glue("{base_url()}/v3/reference/tickers"),
+    params = params,
+    api_key = api_key,
+    rate_limit = rate_limit,
+    max_reqs = max_reqs
+  ) |>
+    httr2::resps_data(\(resp) tidy_tickers(resp))
+}
 
 #' Convert query results to tidy format
 #'
