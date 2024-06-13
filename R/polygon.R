@@ -398,10 +398,14 @@ tidy_open_close <- function(resp) {
     httr2::resp_body_json() |>
     dplyr::bind_rows() |>
     dplyr::rename(
-      after_hours = "afterHours",
-      date = "from",
-      pre_market = "preMarket",
-      ticker = "symbol"
+      dplyr::any_of(
+        c(
+          after_hours = "afterHours",
+          date = "from",
+          pre_market = "preMarket",
+          ticker = "symbol"
+        )
+      )
     ) |>
     dplyr::mutate(
       date = lubridate::as_date(.data$date)
@@ -547,7 +551,7 @@ is_testing <- function() {
 
 testing_key <- function() {
   httr2::secret_decrypt(
-    "xbLJDxkC7VZ7-kcL4rrYV-1fQyHW6I-DURQ9a7ePNsAjwYdkRByso2JHlnSskB22",
+    "hOJuop59QAgaqPF1cP7vWMqZb3Tmx3sFzvJzMwnal51euQEOUZvgFL0deHi0udZ7",
     "POLYGONTEST_KEY"
   )
 }

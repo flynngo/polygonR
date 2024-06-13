@@ -223,8 +223,7 @@ test_that("Stocks open/close queries are successful", {
     high = 266.00,
     low = 262.00,
     close = 262.08,
-    volume = 100,
-    otc = TRUE
+    volume = 100
   )
 
   # Different sites list different trade volumes.
@@ -234,7 +233,6 @@ test_that("Stocks open/close queries are successful", {
     expect_lte(abs(msft[, i] - msft_expected[i]), tol[i])
     expect_lte(abs(alizf[, i] - alizf_expected[i]), tol[i])
   }
-  expect_identical(alizf[, "otc"], alizf_expected["otc"])
 })
 
 test_that("Options open/close queries are successful", {
