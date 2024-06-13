@@ -531,16 +531,12 @@ get_api_key <- function() {
 
 #' Set API key as environment variable
 #'
-#' @param key Default = `NULL` will prompt the user to enter their API key and
-#'   is recommended. Alternatively users can pass their API key as a string,
-#'   although this will print the key in the console, which is less secure.
+#' Prompt the user to enter their API key.
 #'
 #' @return NULL
 #' @export
-set_api_key <- function(key = NULL) {
-  if (is.null(key)) {
-    key <- askpass::askpass("Please enter your API key")
-  }
+set_api_key <- function() {
+  key <- askpass("Please enter your API key")
   Sys.setenv("POLYGON_KEY" = key)
   cli::cli_inform(c("v" = "POLYGON_KEY set."))
 }
@@ -551,7 +547,7 @@ is_testing <- function() {
 
 testing_key <- function() {
   httr2::secret_decrypt(
-    "hOJuop59QAgaqPF1cP7vWMqZb3Tmx3sFzvJzMwnal51euQEOUZvgFL0deHi0udZ7",
+    "ruPxywZCioE3uG-GslFescCQ1vEq0QQlulPk-RDszMIJP9DeUweiquOEZS-mij18",
     "POLYGONTEST_KEY"
   )
 }

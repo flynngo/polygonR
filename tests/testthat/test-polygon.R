@@ -32,10 +32,11 @@ test_that("Error handling", {
 
 test_that("API key helper works", {
   new_key <- "ABC123"
+  local_mocked_bindings(askpass = function(...) new_key)
   withr::with_envvar(
     new = c("POLYGON_KEY" = "NULL"),
     {
-      expect_message(set_api_key(new_key), "POLYGON_KEY set")
+      expect_message(set_api_key(), "POLYGON_KEY set")
       expect_identical(Sys.getenv("POLYGON_KEY"), new_key)
     }
   )
