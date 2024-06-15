@@ -20,6 +20,10 @@ Imports:
     Rdpack,
     rlang
 Suggests: 
+    ggplot2,
+    knitr,
+    magrittr,
+    rmarkdown,
     testthat (>= 3.0.0),
     tibble,
     withr
@@ -27,3 +31,4 @@ Config/testthat/edition: 3
 URL: https://github.com/flynngo/polygonR
 BugReports: https://github.com/flynngo/polygonR/issues
 RdMacros: Rdpack
+VignetteBuilder: knitr
