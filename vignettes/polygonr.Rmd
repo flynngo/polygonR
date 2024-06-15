@@ -71,11 +71,8 @@ faang <-
       from = "2023-06-11",
       to = "2024-06-11")}) |>
   bind_rows()
-
 faang |>
-  ggplot(aes(x = time, y = open, colour = ticker)) +
-  geom_path() +
-  labs(x = "Time", y = "Price")
+  filter(time == max(time) | time == min(time))
 ```
 
 The stock price for Meta and Netflix has grown significantly over the year. However, there are large differences between the starting prices, so plotting the absolute stock price is not particularly informative. Let's rescale the prices of each stock by their price on the first day in our dataset, which should give us a much better sense of how each company has grown over this period.

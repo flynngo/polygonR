@@ -65,20 +65,20 @@ was traded.
 ``` r
 grouped_daily("2024-06-11")
 #> # A tibble: 10,519 × 9
-#>    ticker  volume volume_weighted   open  close  high    low time               
-#>    <chr>    <dbl>           <dbl>  <dbl>  <dbl> <dbl>  <dbl> <dttm>             
-#>  1 UCO    1062498           31.0   30.9   31.1   31.4  30.6  2024-06-11 20:00:00
-#>  2 QFIN   1103423           20.2   20.4   20.1   20.5  20.1  2024-06-11 20:00:00
-#>  3 ALX       8024          209.   210.   209.   210.  209.   2024-06-11 20:00:00
-#>  4 NANR     12564           54.1   54.3   54.2   54.3  53.7  2024-06-11 20:00:00
-#>  5 OZK    1288577           37.9   37.9   38.1   38.2  37.5  2024-06-11 20:00:00
-#>  6 MPAA    488329            4.71   5.27   4.75   5.5   4.36 2024-06-11 20:00:00
-#>  7 BITX   6927261           41.7   42.2   42.5   42.8  40.6  2024-06-11 20:00:00
-#>  8 TGLS    706413           44.6   45.6   44.7   45.6  44.3  2024-06-11 20:00:00
-#>  9 SMAY     26065           23.1   23.1   23.1   23.2  23.0  2024-06-11 20:00:00
-#> 10 LSXMA  1034155           20.9   20.7   20.8   21.1  20.7  2024-06-11 20:00:00
+#>    ticker  volume volume_weighted  open   close   high     low
+#>    <chr>    <dbl>           <dbl> <dbl>   <dbl>  <dbl>   <dbl>
+#>  1 ISCG     21157          44.8    44.8  44.9    45.0   44.6  
+#>  2 CVLG     29174          48.1    48.3  48.3    48.3   47.8  
+#>  3 OZK    1288577          37.9    37.9  38.1    38.2   37.5  
+#>  4 TGLS    706413          44.6    45.6  44.7    45.6   44.3  
+#>  5 RDVY    760418          54.0    54.3  54.1    54.3   53.8  
+#>  6 YYAI     84449           0.768   0.8   0.751   0.81   0.740
+#>  7 ALX       8024         209.    210.  209.    210.   209.   
+#>  8 IVOO     44055          98.5    98.7  98.8    98.8   97.9  
+#>  9 ALCO     14640          25.8    26.2  25.8    26.2   25.7  
+#> 10 QFIN   1103423          20.2    20.4  20.1    20.5   20.1  
 #> # ℹ 10,509 more rows
-#> # ℹ 1 more variable: transactions <int>
+#> # ℹ 2 more variables: time <dttm>, transactions <int>
 ```
 
 We can also request the historical performance of a stock at more
@@ -134,14 +134,23 @@ faang <-
       from = "2023-06-11",
       to = "2024-06-11")}) |>
   bind_rows()
-
 faang |>
-  ggplot(aes(x = time, y = open, colour = ticker)) +
-  geom_path() +
-  labs(x = "Time", y = "Price")
+  filter(time == max(time) | time == min(time))
+#> # A tibble: 10 × 9
+#>    ticker    volume volume_weighted  open close  high   low time               
+#>    <chr>      <dbl>           <dbl> <dbl> <dbl> <dbl> <dbl> <dttm>             
+#>  1 META    15471689            269.  267.  271.  272.  265. 2023-06-12 04:00:00
+#>  2 META     8897158            504.  500.  507.  508.  498. 2024-06-11 04:00:00
+#>  3 AMZN    51473276            126.  124.  127.  127.  124. 2023-06-12 04:00:00
+#>  4 AMZN    26638046            186.  187.  187.  188.  185. 2024-06-11 04:00:00
+#>  5 AAPL    54754995            183.  181.  184.  184.  181. 2023-06-12 04:00:00
+#>  6 AAPL   169677009            203.  194.  207.  207.  194. 2024-06-11 04:00:00
+#>  7 NFLX     5967712            421.  419.  424.  425.  417. 2023-06-12 04:00:00
+#>  8 NFLX     2131447            646.  641.  649.  650.  641. 2024-06-11 04:00:00
+#>  9 GOOG    22289632            124.  123.  124.  125.  122. 2023-06-12 04:00:00
+#> 10 GOOG    13169210            177.  178.  178.  178.  175. 2024-06-11 04:00:00
+#> # ℹ 1 more variable: transactions <int>
 ```
-
-<img src="man/figures/README-faang-1.png" width="100%" />
 
 The stock price for Meta and Netflix has grown significantly over the
 year. However, there are large differences between the starting prices,
