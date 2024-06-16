@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-have_key <- polygonR:::get_api_key() != ""
+have_key <- Sys.getenv("POLYGON_KEY") != ""
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
