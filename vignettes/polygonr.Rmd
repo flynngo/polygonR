@@ -8,10 +8,8 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-library(knitr)
 have_key <- polygonR:::get_api_key() != ""
-knit_hooks$set(optipng = hook_optipng)
-opts_chunk$set(
+knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   eval = have_key,
@@ -19,7 +17,7 @@ opts_chunk$set(
   fig.width = 6,
   out.width = "100%",
   fig.retina = 2,
-  optipng = '-o7'
+  optipng = "-o7"
 )
 ```
 ```{r eval = !have_key, echo = FALSE, comment = NA}
@@ -52,7 +50,10 @@ grouped_daily("2024-06-11")
 
 We can also request the historical performance of a stock at more regular intervals, over a longer period of time. Let's demonstrate this by plotting Apple's stock price in minute interval for the last year.
 ```{r apple_query, message = FALSE}
-aapl <- aggregates("AAPL", timespan = "minute", from = "2023-06-11", to = "2024-06-11")
+aapl <- aggregates(
+  "AAPL",
+  timespan = "minute", from = "2023-06-11", to = "2024-06-11"
+)
 summary(aapl)
 aapl |>
   ggplot(aes(x = time, y = open)) +
@@ -69,7 +70,9 @@ faang <-
       .ticker,
       timespan = "day",
       from = "2023-06-11",
-      to = "2024-06-11")}) |>
+      to = "2024-06-11"
+    )
+  }) |>
   bind_rows()
 faang |>
   filter(time == max(time) | time == min(time))
@@ -94,21 +97,25 @@ After rescaling, we can see just how well Meta stock performed. With the excepti
 So far we've only shown queries from major stock exchanges, but Polygon tracks prices for OTC stocks and market indexes, as well as the forex, crypto and option markets. We can also query those with `polygonR`.
 
 ```{r alt_query, message = FALSE, fig.asp = 0.66}
-other_queries <- 
+other_queries <-
   c("I:NDX", "C:EURUSD", "X:BTCUSD", "O:AAPL251219C00200000") |>
   lapply(\(.ticker) {
     aggregates(
       .ticker,
       timespan = "day",
       from = "2023-06-11",
-      to = "2024-06-11")}) |>
+      to = "2024-06-11"
+    )
+  }) |>
   bind_rows()
 facet_labels <- as_labeller(
-  c("C:EURUSD" = "Euro to USD exchange rate",
-    "I:NDX" = "Nasdaq-100", 
-    "O:AAPL251219C00200000" = "AAPL Dec 2025 200.000 call option", 
-    "X:BTCUSD" = "Bitcoin to USD exchange rate")
+  c(
+    "C:EURUSD" = "Euro to USD exchange rate",
+    "I:NDX" = "Nasdaq-100",
+    "O:AAPL251219C00200000" = "AAPL Dec 2025 200.000 call option",
+    "X:BTCUSD" = "Bitcoin to USD exchange rate"
   )
+)
 other_queries |>
   ggplot(aes(x = time, y = open)) +
   geom_path() +

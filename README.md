@@ -86,7 +86,10 @@ regular intervals, over a longer period of time. Let’s demonstrate this
 by plotting Apple’s stock price in minute interval for the last year.
 
 ``` r
-aapl <- aggregates("AAPL", timespan = "minute", from = "2023-06-11", to = "2024-06-11")
+aapl <- aggregates(
+  "AAPL",
+  timespan = "minute", from = "2023-06-11", to = "2024-06-11"
+)
 summary(aapl)
 #>     ticker              volume         volume_weighted      open      
 #>  Length:188667      Min.   :     100   Min.   :159.6   Min.   :164.1  
@@ -132,7 +135,9 @@ faang <-
       .ticker,
       timespan = "day",
       from = "2023-06-11",
-      to = "2024-06-11")}) |>
+      to = "2024-06-11"
+    )
+  }) |>
   bind_rows()
 faang |>
   filter(time == max(time) | time == min(time))
@@ -184,21 +189,25 @@ tracks prices for OTC stocks and market indexes, as well as the forex,
 crypto and option markets. We can also query those with `polygonR`.
 
 ``` r
-other_queries <- 
+other_queries <-
   c("I:NDX", "C:EURUSD", "X:BTCUSD", "O:AAPL251219C00200000") |>
   lapply(\(.ticker) {
     aggregates(
       .ticker,
       timespan = "day",
       from = "2023-06-11",
-      to = "2024-06-11")}) |>
+      to = "2024-06-11"
+    )
+  }) |>
   bind_rows()
 facet_labels <- as_labeller(
-  c("C:EURUSD" = "Euro to USD exchange rate",
-    "I:NDX" = "Nasdaq-100", 
-    "O:AAPL251219C00200000" = "AAPL Dec 2025 200.000 call option", 
-    "X:BTCUSD" = "Bitcoin to USD exchange rate")
+  c(
+    "C:EURUSD" = "Euro to USD exchange rate",
+    "I:NDX" = "Nasdaq-100",
+    "O:AAPL251219C00200000" = "AAPL Dec 2025 200.000 call option",
+    "X:BTCUSD" = "Bitcoin to USD exchange rate"
   )
+)
 other_queries |>
   ggplot(aes(x = time, y = open)) +
   geom_path() +

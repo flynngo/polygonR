@@ -5,11 +5,14 @@ output: github_document
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
+library(knitr)
+knit_hooks$set(optipng = hook_optipng)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  optipng = "-o7"
 )
 ```
 
