@@ -5,11 +5,14 @@ output: github_document
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
+library(knitr)
+knit_hooks$set(optipng = hook_optipng)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  optipng = "-o7"
 )
 ```
 
@@ -20,7 +23,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: end -->
 
-polygonR provides R function for querying the polygon.io API.
+polygonR is an R package that streamlines financial market data analysis by simplifying the process of querying data and processing data from the [polygon.io](www.polygon.io) API.
 
 ## Installation
 
@@ -31,9 +34,10 @@ You can install the development version of polygonR from [GitHub](https://github
 devtools::install_github("flynngo/polygonR")
 ```
 
-<!-- ## Example -->
+<!-- We include the getting started vignette in lieu of writing new examples -->
 
-<!-- This is a basic example which shows you how to solve a common problem: -->
+```{r child="vignettes/polygonr.Rmd"}
+```
 
 <!-- ```{r example} -->
 <!-- library(polygonR) -->

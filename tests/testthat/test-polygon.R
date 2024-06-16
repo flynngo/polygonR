@@ -1,5 +1,5 @@
 test_that("Error handling", {
-  params <-  list(
+  params <- list(
     adjusted = TRUE,
     sort = "asc",
     limit = 1
@@ -32,9 +32,11 @@ test_that("Error handling", {
 
 test_that("API key helper works", {
   new_key <- "ABC123"
+  local_mocked_bindings(askpass = function(...) new_key)
   withr::with_envvar(
-    new = c("POLYGON_KEY" = "NULL"), {
-      expect_message(set_api_key(new_key), "POLYGON_KEY set")
+    new = c("POLYGON_KEY" = "NULL"),
+    {
+      expect_message(set_api_key(), "POLYGON_KEY set")
       expect_identical(Sys.getenv("POLYGON_KEY"), new_key)
     }
   )
@@ -79,7 +81,7 @@ test_that("query works iteratively", {
   )
 })
 
-test_that("Aggregates queries are successful", {
+test_that("Stock aggregates queries are successful", {
   expect_no_error(
     aapl <- aggregates(
       ticker = "AAPL", multiplier = 1, timespan = "day", from = "2024-01-09",
@@ -99,23 +101,114 @@ test_that("Aggregates queries are successful", {
   expect_identical(nrow(amzn), 5L)
 })
 
-test_that("Grouped daily queries are successful", {
+test_that("Options aggregates queries are successful", {
   expect_no_error(
-    grouped_daily(date = "2023-01-09")
+    actual <- aggregates(
+      ticker = "O:SPY251219C00650000", multiplier = 1, timespan = "day",
+      from = "2024-01-09", to = "2024-02-09", limit = 120
+    )
+  )
+  expect_identical(
+    colnames(actual),
+    c("ticker", "volume", "volume_weighted", "open", "close", "high", "low", "time", "transactions") # nolint
+  )
+})
+
+test_that("Indices aggregates queries are successful", {
+  expect_no_error(
+    ndx <- aggregates(
+      ticker = "I:NDX", multiplier = 1, timespan = "day",
+      from = "2024-01-09", to = "2024-02-09", limit = 120
+    )
+  )
+  expect_identical(
+    colnames(ndx),
+    c("ticker", "open", "close", "high", "low", "time")
+  )
+})
+
+
+test_that("Forex aggregates queries are successful", {
+  expect_no_error(
+    eur_usd <- aggregates(
+      ticker = "C:EURUSD", multiplier = 1, timespan = "day",
+      from = "2024-01-09", to = "2024-02-09", limit = 120
+    )
+  )
+  expect_identical(
+    colnames(eur_usd),
+    c("ticker", "volume", "volume_weighted", "open", "close", "high", "low", "time", "transactions") # nolint
+  )
+})
+
+
+test_that("Crypto aggregates queries are successful", {
+  expect_no_error(
+    btc_usd <- aggregates(
+      ticker = "X:BTCUSD", multiplier = 1, timespan = "day",
+      from = "2024-01-09", to = "2024-02-09", limit = 120
+    )
+  )
+  expect_identical(
+    colnames(btc_usd),
+    c("ticker", "volume", "volume_weighted", "open", "close", "high", "low", "time", "transactions") # nolint
+  )
+})
+
+test_that("Stocks grouped daily queries are successful", {
+  expect_no_error(
+    gd_stocks1 <- grouped_daily(date = "2023-01-09", market = "stocks")
+  )
+  expect_no_error(
+    gd_stocks2 <- stocks_daily(date = "2023-01-09")
+  )
+  expect_identical(gd_stocks1, gd_stocks2)
+  expect_identical(
+    colnames(gd_stocks1),
+    c(
+      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
+      "time", "transactions"
+    )
   )
   expect_true(
     any(
-      "ALIZF" == grouped_daily(date = "2023-01-09", include_otc = TRUE)$ticker
+      "ALIZF" == stocks_daily(date = "2023-01-09", include_otc = TRUE)$ticker
     )
   )
   expect_false(
     any(
-      "ALIZF" == grouped_daily(date = "2023-01-09", include_otc = FALSE)$ticker
+      "ALIZF" == stocks_daily(date = "2023-01-09", include_otc = FALSE)$ticker
     )
   )
 })
 
-test_that("Open/close queries are successful", {
+test_that("Forex grouped daily queries are successful", {
+  expect_no_error(
+    gd_fx <- grouped_daily(date = "2023-01-09", market = "fx")
+  )
+  expect_identical(
+    colnames(gd_fx),
+    c(
+      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
+      "time", "transactions"
+    )
+  )
+})
+
+test_that("Crypto grouped daily queries are successful", {
+  expect_no_error(
+    gd_crypto <- grouped_daily(date = "2023-01-09", market = "crypto")
+  )
+  expect_identical(
+    colnames(gd_crypto),
+    c(
+      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
+      "time", "transactions"
+    )
+  )
+})
+
+test_that("Stocks open/close queries are successful", {
   msft <- open_close(ticker = "MSFT", date = "2024-02-12")
   alizf <- open_close(ticker = "ALIZF", date = "2024-02-01")
 
@@ -131,8 +224,7 @@ test_that("Open/close queries are successful", {
     high = 266.00,
     low = 262.00,
     close = 262.08,
-    volume = 100,
-    otc = TRUE
+    volume = 100
   )
 
   # Different sites list different trade volumes.
@@ -142,10 +234,51 @@ test_that("Open/close queries are successful", {
     expect_lte(abs(msft[, i] - msft_expected[i]), tol[i])
     expect_lte(abs(alizf[, i] - alizf_expected[i]), tol[i])
   }
-  expect_identical(alizf[, "otc"], alizf_expected["otc"])
 })
 
-test_that("Previous close queries are successful", {
+test_that("Options open/close queries are successful", {
+  actual <- open_close(ticker = "O:SPY251219C00650000", date = "2024-02-12")
+  expected <- tibble::tibble(
+    open = 4.74,
+    high = 5.0,
+    low = 4.74,
+    close = 5.0
+  )
+  tol <- .005
+  for (i in names(expected)) {
+    expect_lte(abs(actual[, i] - expected[, i]), .005)
+  }
+})
+
+test_that("Indices open/close queries are successful", {
+  actual <- open_close(ticker = "I:NDX", date = "2024-02-12")
+  expected <- tibble::tibble(
+    open = 17942.28,
+    high = 18041.45,
+    low = 17859.66,
+    close = 17882.66
+  )
+  tol <- .005
+  for (i in names(expected)) {
+    expect_lte(abs(actual[, i] - expected[, i]), tol)
+  }
+})
+
+test_that("Crypto open/close queries are successful", {
+  actual <- open_close(ticker = "X:BTCUSD", date = "2024-02-12")
+  expected <- tibble::tibble(
+    open = 48321.14,
+    high = 50363.42,
+    low = 47642,
+    close = 49941.81
+  )
+  tol <- .005
+  for (i in names(expected)) {
+    expect_lte(abs(actual[, i] - expected[, i]), tol)
+  }
+})
+
+test_that("Stocks previous close queries are successful", {
   expect_no_error(
     nflx <- prev_close("NFLX")
   )
@@ -166,7 +299,78 @@ test_that("Previous close queries are successful", {
       "time", "transactions", "otc"
     )
   )
+})
 
+test_that("Options previous close queries are successful", {
+  expect_no_error(
+    actual <- prev_close("O:SPY251219C00650000")
+  )
+  expect_identical(
+    colnames(actual),
+    c(
+      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
+      "time", "transactions"
+    )
+  )
+})
+
+test_that("Indices previous close queries are successful", {
+  expect_no_error(
+    actual <- prev_close("I:NDX")
+  )
+  expect_identical(
+    colnames(actual),
+    c("ticker", "open", "close", "high", "low", "time")
+  )
+})
+
+test_that("Forex previous close queries are successful", {
+  expect_no_error(
+    actual <- prev_close("C:EURUSD")
+  )
+  expect_identical(
+    colnames(actual),
+    c(
+      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
+      "time", "transactions"
+    )
+  )
+})
+
+test_that("Crypto previous close queries are successful", {
+  expect_no_error(
+    actual <- prev_close("X:BTCUSD")
+  )
+  expect_identical(
+    colnames(actual),
+    c(
+      "ticker", "volume", "volume_weighted", "open", "close", "high", "low",
+      "time", "transactions"
+    )
+  )
+})
+
+test_that("Tickers queries work", {
+  expect_no_error(
+    aapl <- tickers(
+      "AAPL",
+      type = "CS", active = TRUE, market = "stocks", cik = "0000320193",
+      cusip = "037833100", exchange = "XNAS", date = "2024-02-01"
+    )
+  )
+  expect_identical(aapl$name, "Apple Inc.")
+
+  expect_no_error(
+    gbp <- tickers(market = "fx", search = "sterling")
+  )
+  expect_true(
+    all(sapply(gbp$ticker, \(t) grepl("GBP", t)))
+  )
+
+  expect_no_error(
+    empty <- tickers(search = "match_nothing_7835y3")
+  )
+  expect_identical(empty, tibble::tibble())
 })
 
 test_that("Basic plan rate limit isn't hit", {
@@ -179,4 +383,36 @@ test_that("Basic plan rate limit isn't hit", {
       )
     }
   })
+})
+
+test_that("Ticker market detection", {
+  ticker_markets <- tibble::tribble(
+    ~ticker, ~expected,
+    "X:BTCUSD", "crypto",
+    "C:GBPUSD", "fx",
+    "AAL", "stock",
+    "I:NDX", "index",
+    "O:SPY251219C00650000", "option",
+  )
+  expect_identical(
+    unlist(
+      lapply(
+        ticker_markets$ticker,
+        \(ticker) ticker_type(ticker)
+      )
+    ),
+    ticker_markets$expected
+  )
+  expect_error(
+    ticker_type("invalid:format"),
+    'ticker = "invalid:format" is not a valid ticker.'
+  )
+})
+
+test_that("Grouped daily throws error when invalid market is supplied.", {
+  expect_error(
+    grouped_daily(date = "2023-01-09", market = "invalid"),
+    'market = "invalid" is invalid.',
+    fixed = TRUE
+  )
 })

@@ -2,7 +2,6 @@
 % Please edit documentation in R/polygonR-package.R, R/senateR-package.R
 \docType{package}
 \name{polygonR-package}
-\alias{polygonR}
 \alias{polygonR-package}
 \title{polygonR: Interact With the Polygon REST API}
 \description{

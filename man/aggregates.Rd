@@ -2,7 +2,7 @@
 % Please edit documentation in R/polygon.R
 \name{aggregates}
 \alias{aggregates}
-\title{Get aggregate bars for a stock over a time period}
+\title{Get aggregate bars for an asset over a time period}
 \usage{
 aggregates(
   ticker,
@@ -19,8 +19,9 @@ aggregates(
 )
 }
 \arguments{
-\item{ticker}{Specify a case-sensitive ticker symbol. For example, "AAPL"
-represents Apple Inc.}
+\item{ticker}{A string containing the ticker code for an asset (stock,
+option, index, etc.). See \code{\link{ticker_type}} for more details on formatting
+ticker codes.}
 
 \item{from}{The start of the aggregate time window. Either a date with the
 format "YYYY-MM-DD" or a millisecond timestamp.}
@@ -59,7 +60,7 @@ A tibble containing price information of \code{ticker} for each of the
 requested periods.
 }
 \description{
-Use the aggregates API to get aggregate bars for a particular stock over a
+Use the aggregates API to get aggregate bars for a particular asset over a
 given date range in custom time window sizes.
 }
 \references{

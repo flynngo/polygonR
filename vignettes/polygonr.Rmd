@@ -1,0 +1,129 @@
+---
+title: "Getting started"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+have_key <- Sys.getenv("POLYGON_KEY") != ""
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = have_key,
+  fig.asp = 0.5,
+  fig.width = 6,
+  out.width = "100%",
+  fig.retina = 2,
+  optipng = "-o7"
+)
+```
+```{r eval = !have_key, echo = FALSE, comment = NA}
+message("No API key available. Code chunks will not be evaluated.")
+```
+
+## Setup
+```{r setup, message = FALSE}
+library(polygonR)
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+Before we can begin querying market data, we need an API key to authenticate our queries to polygon.io. If you haven't already, go to <www.polygon.io> and sign up for an account. Any account can request data, although some types of requests are only available to certain membership plans and Basic accounts are limited to 5 API calls per minute.
+
+Once you're signed in to your account, your API keys can be found from the dashboard. We can supply it to `polygonR` as follows.
+```{r api_key, eval = F}
+set_api_key()
+```
+This will bring up a secure text field where you can input the API key. The key will be stored as the environment variable `POLYGON_KEY`. Depending on your RStudio settings, this may or may not be saved between sessions. Once we've set up our API key, we're ready to start querying data!
+
+## Querying data
+We'll start by requesting a summary for all stocks that were traded on major exchanges on the 11th June 2024. This shows us the opening, closing, maximum and minimum prices over the day, and the volume that was traded.
+
+```{r daily}
+grouped_daily("2024-06-11")
+```
+
+We can also request the historical performance of a stock at more regular intervals, over a longer period of time. Let's demonstrate this by plotting Apple's stock price in minute interval for the last year.
+```{r apple_query, message = FALSE}
+aapl <- aggregates(
+  "AAPL",
+  timespan = "minute", from = "2023-06-11", to = "2024-06-11"
+)
+summary(aapl)
+aapl |>
+  ggplot(aes(x = time, y = open)) +
+  geom_path() +
+  labs(x = "Time", y = "Price")
+```
+
+We can easily compare the performance of several stocks. Since we're only planning to plot our data, we'll speed up the query time for our free polygon.io account by increasing the time interval to one day.
+```{r faang, message = FALSE}
+faang <-
+  c("META", "AMZN", "AAPL", "NFLX", "GOOG") |>
+  lapply(\(.ticker) {
+    aggregates(
+      .ticker,
+      timespan = "day",
+      from = "2023-06-11",
+      to = "2024-06-11"
+    )
+  }) |>
+  bind_rows()
+faang |>
+  filter(time == max(time) | time == min(time))
+```
+
+The stock price for Meta and Netflix has grown significantly over the year. However, there are large differences between the starting prices, so plotting the absolute stock price is not particularly informative. Let's rescale the prices of each stock by their price on the first day in our dataset, which should give us a much better sense of how each company has grown over this period.
+```{r faang_growth}
+faang <- faang |>
+  group_by(ticker) |>
+  mutate(growth = open / open[1] - 1)
+
+faang |>
+  ggplot(aes(x = time, y = growth, colour = ticker)) +
+  geom_path() +
+  labs(x = "Time", y = "Growth (since 2023-06-11)") +
+  scale_y_continuous(labels = scales::percent)
+```
+
+After rescaling, we can see just how well Meta stock performed. With the exception of Apple, the remaining FAANG companies all saw similar growth over the period.
+
+## Querying other markets
+So far we've only shown queries from major stock exchanges, but Polygon tracks prices for OTC stocks and market indexes, as well as the forex, crypto and option markets. We can also query those with `polygonR`.
+
+```{r alt_query, message = FALSE, fig.asp = 0.66}
+other_queries <-
+  c("I:NDX", "C:EURUSD", "X:BTCUSD", "O:AAPL251219C00200000") |>
+  lapply(\(.ticker) {
+    aggregates(
+      .ticker,
+      timespan = "day",
+      from = "2023-06-11",
+      to = "2024-06-11"
+    )
+  }) |>
+  bind_rows()
+facet_labels <- as_labeller(
+  c(
+    "C:EURUSD" = "Euro to USD exchange rate",
+    "I:NDX" = "Nasdaq-100",
+    "O:AAPL251219C00200000" = "AAPL Dec 2025 200.000 call option",
+    "X:BTCUSD" = "Bitcoin to USD exchange rate"
+  )
+)
+other_queries |>
+  ggplot(aes(x = time, y = open)) +
+  geom_path() +
+  facet_wrap("ticker", ncol = 2, scales = "free_y", labeller = facet_labels) +
+  labs(x = "Time", y = "Price")
+```
+
+## Further information
+
+For more information about each type of query Look at the package documentation. `polygonr` has functionality for most queries that can be made of the polygon.io API ([see here](https://polygon.io/docs/stocks/getting-started)). Feature requests and bug reports can be submitted on [Github](https://github.com/flynngo/polygonR).
+
